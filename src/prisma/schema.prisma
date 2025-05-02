@@ -1,0 +1,130 @@
+// Prisma Schema - Optimized for High Volume and Auth System
+
+// =============================
+generator client {
+    provider = "prisma-client-js"
+}
+
+// =============================
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// =============================
+enum Role {
+    USER
+    MANAGER
+    ADMIN
+    SUPER_ADMIN
+}
+
+// =============================
+model User {
+    id         String  @id @default(uuid())
+    name       String
+    email      String  @unique
+    password   String
+    department String?
+    phone      String?
+    role       Role    @default(USER)
+    managerId  String?
+    location   String
+    adminId    String?
+
+    // Relations
+    manager User?  @relation("ManagerToUsers", fields: [managerId], references: [id])
+    manages User[] @relation("ManagerToUsers")
+
+    admin    User?  @relation("AdminToManagers", fields: [adminId], references: [id])
+    managers User[] @relation("AdminToManagers")
+
+    // Request relations
+    userRequests    Request[]      @relation("UserToRequests")
+    managerRequests Request[]      @relation("ManagerToRequests")
+    otps            Otp[]
+    RefreshToken    RefreshToken[]
+
+    @@index([email])
+    @@index([role])
+}
+
+// =============================
+model Request {
+    id                           String   @id @default(uuid())
+    date                         DateTime
+    selectedDepartment           String
+    selectedSection              String
+    stationID                    String
+    missionBlock                 String
+    workType                     String
+    workDescription              String
+    selectedLine                 Json
+    selectedStream               String?
+    cautionRequired              Boolean  @default(false)
+    cautionSpeed                 Int?
+    cautionLocationFrom          String?
+    cautionLocationTo            String?
+    workLocationFrom             String
+    workLocationTo               String
+    demandTimeFrom               DateTime
+    demandTimeTo                 DateTime
+    sigDisconnection             Boolean?
+    elementarySectionFrom        String?
+    elementarySectionTo          String?
+    sigElementarySectionFrom     String?
+    sigElementarySectionTo       String?
+    repercussions                String?
+    otherLinesAffected           Json?
+    requestremarks               String?
+    createdAt                    DateTime @default(now())
+    status                       String?  @default("PENDING")
+    selectedDepo                 String?
+    sigResponse                  String?  @default("yes")
+    ohDisconnection              String?
+    oheDisconnection             String?
+    oheResponse                  String?  @default("yes")
+    corridorType                 String?  @default("corridor")
+    sigActionsNeeded             Boolean? @default(true)
+    trdActionsNeeded             Boolean? @default(true)
+    ManagerResponse              String?
+    archived                     Boolean  @default(false)
+    sigDisconnectionRequirements String?
+    trdDisconnectionRequirements String?
+
+    // Relations
+    user   User?   @relation("UserToRequests", fields: [userId], references: [id])
+    userId String?
+
+    manager   User?   @relation("ManagerToRequests", fields: [managerId], references: [id])
+    managerId String?
+
+    @@index([userId])
+    @@index([managerId])
+    @@index([createdAt])
+}
+
+// =============================
+model Otp {
+    id        String   @id @default(uuid())
+    code      String
+    createdAt DateTime @default(now())
+    validTill DateTime
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
+
+    @@index([userId])
+    @@index([validTill])
+}
+
+model RefreshToken {
+    id        String   @id @default(uuid())
+    token     String   @unique
+    userId    String
+    user      User     @relation(fields: [userId], references: [id])
+    expiresAt DateTime
+    createdAt DateTime @default(now())
+
+    @@index([userId])
+    @@index([expiresAt])
+}
