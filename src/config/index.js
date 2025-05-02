@@ -10,8 +10,6 @@ config({ path: pathName });
 
 const ConfigSchema = object({
     NODE_ENV: string(),
-    TZ: string(),
-    PORT: number(),
     SERVER_DOMAIN: string().url(),
     DATABASE_URL: string().url(),
     MONGODB_LOGS_DATABASE_URI: string().url(),
