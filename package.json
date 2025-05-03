@@ -7,7 +7,7 @@
         "node": "20.x"
     },
     "scripts": {
-        "start": "dotenv -e .env -- npm run prisma:push && cross-env NODE_ENV=production node src/server.js",
+        "start": "dotenv -e .env -- npm run prisma:generate && npm run prisma:push && cross-env NODE_ENV=production node src/server.js",
         "dev": "dotenv -e .env.development -- npm run prisma:push && cross-env NODE_ENV=development nodemon src/server.js",
         "test": "npm run test",
         "format:check": "prettier --check .",
