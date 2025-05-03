@@ -1,19 +1,17 @@
-import { PrismaClient } from "@prisma/client";
+
 import { hashPassword, comparePassword } from "../utils/password.utils.js";
 import { generateResetToken, getTokenExpiry } from "../utils/token.utils.js";
 import { sendPasswordResetEmail } from "../utils/email.utils.js";
 import * as tokenService from "./token.service.js";
-
-const prisma = new PrismaClient();
-
-// Common user data formatter
+import prisma from "../prisma/index.js";
 const formatUserData = (user) => ({
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role,
     department: user.department,
-    phone: user.phone
+    phone: user.phone,
+    location: user.location,
 });
 
 // Login service

@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../prisma/index.js";
 import { generateToken, verifyToken } from "../utils/jwt.utils.js";
 
-const prisma = new PrismaClient();
 
 export const generateAccessToken = (userId) => {
     return generateToken({ id: userId });
