@@ -9,7 +9,7 @@
     "scripts": {
         "start": "npm run prisma:generate && npm run prisma:push && NODE_ENV=production node src/server.js",
         "dev": "dotenv -e .env.development -- npm run prisma:push && cross-env NODE_ENV=development nodemon src/server.js",
-        "build": "npm run prisma:generate && npm run prisma:push",
+        "build": "npm run prisma:generate && npm run prisma:push && babel src --out-dir dist --copy-files",
         "test": "npm run test",
         "format:check": "prettier --check .",
         "format:fix": "prettier --write .",
@@ -92,6 +92,9 @@
     ],
     "description": "prisma-express-js-kit is a robust boilerplate project designed for building RESTful APIs using Node.js, Express.js, MySQL, and Prisma ORM. With modern JavaScript (ES6) support, it provides a solid foundation for scalable and efficient backend development, ensuring quick project setup and best practices.",
     "devDependencies": {
+        "@babel/cli": "^7.27.1",
+        "@babel/core": "^7.27.1",
+        "@babel/preset-env": "^7.27.1",
         "cross-env": "^7.0.3",
         "dotenv-cli": "^7.4.2",
         "husky": "^9.1.6",
