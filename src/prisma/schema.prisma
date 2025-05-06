@@ -55,27 +55,24 @@ model Request {
     date                         DateTime
     selectedDepartment           String
     selectedSection              String
-    stationID                    String
+    stationID                    String?
     missionBlock                 String
     workType                     String
-    workDescription              String
-    selectedLine                 Json
-    selectedStream               String?
-    cautionRequired              Boolean  @default(false)
-    cautionSpeed                 Int?
-    cautionLocationFrom          String?
-    cautionLocationTo            String?
-    workLocationFrom             String
-    workLocationTo               String
+    activity                     String? // You can rename it to 'activity' if needed
+    freshCautionRequired         Boolean? @default(false)
+    freshCautionSpeed            Int?
+    freshCautionLocationFrom     String?
+    freshCautionLocationTo       String?
+    workLocationFrom             String?
+    workLocationTo               String?
     demandTimeFrom               DateTime
     demandTimeTo                 DateTime
-    sigDisconnection             Boolean?
-    elementarySectionFrom        String?
+    sigDisconnection             Boolean? @default(false)
+    elementarySection            String?
     elementarySectionTo          String?
     sigElementarySectionFrom     String?
     sigElementarySectionTo       String?
     repercussions                String?
-    otherLinesAffected           Json?
     requestremarks               String?
     createdAt                    DateTime @default(now())
     status                       String?  @default("PENDING")
@@ -85,12 +82,22 @@ model Request {
     oheDisconnection             String?
     oheResponse                  String?  @default("yes")
     corridorType                 String?  @default("corridor")
+    corridorTypeSelection        String?
     sigActionsNeeded             Boolean? @default(true)
     trdActionsNeeded             Boolean? @default(true)
     ManagerResponse              String?
-    archived                     Boolean  @default(false)
     sigDisconnectionRequirements String?
+    sntDisconnectionRequirements Json?
+    sntDisconnectionLine         String?
+    sntDisconnectionLineFrom     String?
+    sntDisconnectionLineTo       String?
     trdDisconnectionRequirements String?
+    powerBlockRequirements       Json?
+    powerBlockRequired           Boolean? @default(false)
+    sntDisconnectionRequired     Boolean? @default(false)
+    processedLineSections        Json?
+    routeFrom                    String?
+    routeTo                      String?
 
     // Relations
     user   User?   @relation("UserToRequests", fields: [userId], references: [id])

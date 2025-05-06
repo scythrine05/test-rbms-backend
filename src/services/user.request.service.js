@@ -1,13 +1,14 @@
 import prisma from "../prisma/index.js";
 
 export const createRequest = async (data, userId) => {
+
     return await prisma.request.create({
         data: {
             ...data,
             userId,
             status: "PENDING"
         }
-    });
+    })
 };
 
 export const getRequestById = async (id) => {
