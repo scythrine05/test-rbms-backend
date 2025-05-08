@@ -14,6 +14,7 @@ export const createRequestSchema = z.object({
     demandTimeTo: z.string().datetime(),
     sigDisconnection: z.boolean().optional(),
     // elementarySectionFrom: z.string().optional(),
+    elementarySection: z.string().optional(),
     elementarySectionTo: z.string().optional(),
     sigElementarySectionFrom: z.string().optional(),
     sigElementarySectionTo: z.string().optional(),
@@ -37,6 +38,8 @@ export const createRequestSchema = z.object({
         otherRoads: z.string()
     })).optional(),
     trdActionsNeeded: z.boolean().optional().default(true),
+    trdWorkLocation: z.string().optional(),
+    repercussions: z.string().optional(),
     sigDisconnectionRequirements: z.string().optional(),
     trdDisconnectionRequirements: z.string().optional()
 });

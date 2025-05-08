@@ -25,10 +25,13 @@ export const getRequest = async (req, res) => {
 export const updateRequest = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
+        console.log(id, req.body);
         const data = requestValidation.updateRequestSchema.parse(req.body);
+
         const request = await requestService.updateRequest(id, data);
         return successResponse(res, 200, "Request updated successfully", request);
     } catch (error) {
+        console.log(error);
         handleError(error, res);
     }
 };
