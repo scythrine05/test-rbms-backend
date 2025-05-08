@@ -12,6 +12,7 @@ const formatUserData = (user) => ({
     department: user.department,
     phone: user.phone,
     location: user.location,
+    depot: user.depot
 });
 
 // Login service
