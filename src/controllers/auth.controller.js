@@ -93,3 +93,24 @@ export const resetPassword = async (req, res) => {
         handleError(error, res);
     }
 };
+
+export const getUsersByManagerId = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const result = await authService.getUsersByManagerId(req.user.id, page, limit);
+        return successResponse(res, 200, "Users retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
+export const deleteUserById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await authService.deleteUserById(id);
+        return successResponse(res, 200, "User deleted successfully");
+    } catch (error) {
+        handleError(error, res);
+    }
+};

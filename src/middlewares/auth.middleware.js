@@ -81,7 +81,7 @@ export const managerMiddleware = async (req, res, next) => {
             where: { id: decoded.id }
         });
 
-        if (!user || (user.role !== "MANAGER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+        if (!user || (user.role !== "BRANCH_OFFICER" && user.role !== "SENIOR_OFFICER" && user.role !== "JUNIOR_OFFICER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
             return res.status(403).json({
                 status: false,
                 message: "Access denied. Manager privileges required."

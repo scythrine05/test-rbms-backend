@@ -14,9 +14,17 @@ datasource db {
 // =============================
 enum Role {
     USER
-    MANAGER
+    JUNIOR_OFFICER
+    SENIOR_OFFICER
+    BRANCH_OFFICER
     ADMIN
     SUPER_ADMIN
+}
+
+enum Acceptance {
+    PENDING
+    ACCEPTED
+    REJECTED
 }
 
 // =============================
@@ -33,18 +41,18 @@ model User {
     location   String
     adminId    String?
 
+    createdAt DateTime @default(now())
     // Relations
-    manager User?  @relation("ManagerToUsers", fields: [managerId], references: [id])
-    manages User[] @relation("ManagerToUsers")
+    manager   User?    @relation("ManagerToUsers", fields: [managerId], references: [id])
+    manages   User[]   @relation("ManagerToUsers")
 
     admin    User?  @relation("AdminToManagers", fields: [adminId], references: [id])
     managers User[] @relation("AdminToManagers")
 
     // Request relations
-    userRequests    Request[]      @relation("UserToRequests")
-    managerRequests Request[]      @relation("ManagerToRequests")
-    otps            Otp[]
-    RefreshToken    RefreshToken[]
+    userRequests Request[]      @relation("UserToRequests")
+    otps         Otp[]
+    RefreshToken RefreshToken[]
 
     @@index([email])
     @@index([role])
@@ -52,7 +60,7 @@ model User {
 
 // =============================
 model Request {
-    id                           String   @id @default(uuid())
+    id                           String     @id @default(uuid())
     date                         DateTime
     selectedDepartment           String
     selectedSection              String
@@ -60,7 +68,7 @@ model Request {
     missionBlock                 String
     workType                     String
     activity                     String? // You can rename it to 'activity' if needed
-    freshCautionRequired         Boolean? @default(false)
+    freshCautionRequired         Boolean?   @default(false)
     freshCautionSpeed            Int?
     freshCautionLocationFrom     String?
     freshCautionLocationTo       String?
@@ -69,7 +77,7 @@ model Request {
     workLocationTo               String?
     demandTimeFrom               DateTime
     demandTimeTo                 DateTime
-    sigDisconnection             Boolean? @default(false)
+    sigDisconnection             Boolean?   @default(false)
     elementarySection            String?
     elementarySectionTo          String?
     sigElementarySectionFrom     String?
@@ -77,17 +85,17 @@ model Request {
     repercussions                String?
     trdWorkLocation              String?
     requestremarks               String?
-    createdAt                    DateTime @default(now())
-    status                       String?  @default("PENDING")
+    createdAt                    DateTime   @default(now())
+    status                       String?    @default("PENDING")
     selectedDepo                 String?
-    sigResponse                  String?  @default("yes")
+    sigResponse                  String?    @default("yes")
     ohDisconnection              String?
     oheDisconnection             String?
-    oheResponse                  String?  @default("yes")
-    corridorType                 String?  @default("corridor")
+    oheResponse                  String?    @default("yes")
+    corridorType                 String?    @default("corridor")
     corridorTypeSelection        String?
-    sigActionsNeeded             Boolean? @default(true)
-    trdActionsNeeded             Boolean? @default(true)
+    sigActionsNeeded             Boolean?   @default(true)
+    trdActionsNeeded             Boolean?   @default(true)
     ManagerResponse              String?
     sigDisconnectionRequirements String?
     sntDisconnectionRequirements Json?
@@ -96,21 +104,21 @@ model Request {
     sntDisconnectionLineTo       String?
     trdDisconnectionRequirements String?
     powerBlockRequirements       Json?
-    powerBlockRequired           Boolean? @default(false)
-    sntDisconnectionRequired     Boolean? @default(false)
+    powerBlockRequired           Boolean?   @default(false)
+    sntDisconnectionRequired     Boolean?   @default(false)
     processedLineSections        Json?
     routeFrom                    String?
     routeTo                      String?
+    DisconnAcceptance            Acceptance @default(PENDING)
 
-    // Relations
     user   User?   @relation("UserToRequests", fields: [userId], references: [id])
     userId String?
 
-    manager   User?   @relation("ManagerToRequests", fields: [managerId], references: [id])
-    managerId String?
+    managerAcceptanceId String?
+    managerAcceptance   Boolean @default(false)
 
     @@index([userId])
-    @@index([managerId])
+    @@index([managerAcceptanceId])
     @@index([createdAt])
 }
 

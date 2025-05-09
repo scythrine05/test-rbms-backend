@@ -15,4 +15,16 @@ router.delete("/:id", authenticateToken, requestController.deleteRequest);
 router.get("/manager/requests", authenticateToken, managerMiddleware, requestController.getManagerRequests);
 router.put("/:id/status", authenticateToken, managerMiddleware, requestController.updateRequestStatus);
 
+// Get other requests
+router.get("/other/:selectedDepo", authenticateToken, requestController.getOtherRequests);
+
+// Update other request
+router.put("/other/:id", authenticateToken, requestController.updateOtherRequest);
+
+// Get all requests from manager's users
+router.get("/manager/users-requests", authenticateToken, managerMiddleware, requestController.getManagerUsersRequests);
+
+// Accept request by manager
+router.put("/manager/accept/:id", authenticateToken, managerMiddleware, requestController.acceptRequestByManager);
+
 export default router;

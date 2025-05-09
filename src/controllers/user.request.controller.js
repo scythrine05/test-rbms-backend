@@ -78,3 +78,52 @@ export const getManagerRequests = async (req, res) => {
         handleError(error, res);
     }
 };
+
+export const getOtherRequests = async (req, res) => {
+    try {
+        const { selectedDepo } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const result = await requestService.getOtherRequests(selectedDepo, page, limit);
+        return successResponse(res, 200, "Other requests retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
+export const updateOtherRequest = async (req, res) => {
+    try {
+        const { id } = requestValidation.requestIdSchema.parse(req.params);
+        const acceptance = req.query.accept === 'true';
+        const request = await requestService.updateOtherRequest(id, acceptance);
+        return successResponse(res, 200, "Other request updated successfully", request);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
+export const getManagerUsersRequests = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const result = await requestService.getManagerUsersRequests(
+            req.user.id,
+            req.user.role,
+            page,
+            limit
+        );
+        return successResponse(res, 200, "Manager's users requests retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
+export const acceptRequestByManager = async (req, res) => {
+    try {
+        const { id } = requestValidation.requestIdSchema.parse(req.params);
+        const request = await requestService.acceptRequestByManager(id, req.user.id);
+        return successResponse(res, 200, "Request accepted successfully", request);
+    } catch (error) {
+        handleError(error, res);
+    }
+};

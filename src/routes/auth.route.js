@@ -17,7 +17,15 @@ router.get("/user/:id", authenticateToken, authController.getUserById);
 // Manager routes
 router.post("/register-user", authenticateToken, managerMiddleware, authController.registerUserByManager);
 
+router.post("/register-submanager", authenticateToken, managerMiddleware, authController.registerUserByManager);
+
 // Admin routes
 router.post("/register-manager", authenticateToken, adminMiddleware, authController.registerManager);
+
+// Get users by manager ID
+router.get("/users/manager", authenticateToken, managerMiddleware, authController.getUsersByManagerId);
+
+// Delete user by ID
+router.delete("/users/:id", authenticateToken, managerMiddleware, authController.deleteUserById);
 
 export default router;

@@ -24,6 +24,7 @@ export const createRequestSchema = z.object({
     requestremarks: z.string().optional(),
     selectedDepo: z.string().optional(),
     sigResponse: z.string().optional().default("yes"),
+    sntDisconnectionRequired: z.boolean().optional(),
     ohDisconnection: z.string().optional(),
     oheDisconnection: z.string().optional(),
     oheResponse: z.string().optional().default("yes"),
@@ -48,7 +49,7 @@ export const createRequestSchema = z.object({
 export const updateRequestSchema = createRequestSchema.partial();
 
 export const requestIdSchema = z.object({
-    id: z.string().uuid()
+    id: z.string().uuid(),
 });
 
 export const requestStatusSchema = z.object({

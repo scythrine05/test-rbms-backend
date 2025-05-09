@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "User" ALTER COLUMN "depot" DROP DEFAULT;
