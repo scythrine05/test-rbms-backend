@@ -19,13 +19,13 @@ router.post("/register-user", authenticateToken, managerMiddleware, authControll
 
 router.post("/register-submanager", authenticateToken, managerMiddleware, authController.registerUserByManager);
 
-// Admin routes
 router.post("/register-manager", authenticateToken, adminMiddleware, authController.registerManager);
 
-// Get users by manager ID
 router.get("/users/manager", authenticateToken, managerMiddleware, authController.getUsersByManagerId);
 
-// Delete user by ID
+router.get("/manager/admin", authenticateToken, adminMiddleware, authController.getManagerByAdminId);
+
+
 router.delete("/users/:id", authenticateToken, managerMiddleware, authController.deleteUserById);
 
 export default router;

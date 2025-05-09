@@ -1,64 +1,37 @@
-// Prisma Schema - Optimized for High Volume and Auth System
-
-// =============================
 generator client {
     provider = "prisma-client-js"
 }
 
-// =============================
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
-// =============================
-enum Role {
-    USER
-    JUNIOR_OFFICER
-    SENIOR_OFFICER
-    BRANCH_OFFICER
-    ADMIN
-    SUPER_ADMIN
-}
-
-enum Acceptance {
-    PENDING
-    ACCEPTED
-    REJECTED
-}
-
-// =============================
 model User {
-    id         String  @id @default(uuid())
-    name       String
-    email      String  @unique
-    password   String
-    depot      String
-    department String?
-    phone      String?
-    role       Role    @default(USER)
-    managerId  String?
-    location   String
-    adminId    String?
-
-    createdAt DateTime @default(now())
-    // Relations
-    manager   User?    @relation("ManagerToUsers", fields: [managerId], references: [id])
-    manages   User[]   @relation("ManagerToUsers")
-
-    admin    User?  @relation("AdminToManagers", fields: [adminId], references: [id])
-    managers User[] @relation("AdminToManagers")
-
-    // Request relations
-    userRequests Request[]      @relation("UserToRequests")
+    id           String         @id @default(uuid())
+    name         String
+    email        String         @unique
+    password     String
+    depot        String
+    department   String?
+    phone        String?
+    role         Role           @default(USER)
+    managerId    String?
+    location     String
+    adminId      String?
+    createdAt    DateTime       @default(now())
     otps         Otp[]
     RefreshToken RefreshToken[]
+    userRequests Request[]      @relation("UserToRequests")
+    admin        User?          @relation("AdminToManagers", fields: [adminId], references: [id])
+    managers     User[]         @relation("AdminToManagers")
+    manager      User?          @relation("ManagerToUsers", fields: [managerId], references: [id])
+    manages      User[]         @relation("ManagerToUsers")
 
     @@index([email])
     @@index([role])
 }
 
-// =============================
 model Request {
     id                           String     @id @default(uuid())
     date                         DateTime
@@ -67,7 +40,7 @@ model Request {
     stationID                    String?
     missionBlock                 String
     workType                     String
-    activity                     String? // You can rename it to 'activity' if needed
+    activity                     String?
     freshCautionRequired         Boolean?   @default(false)
     freshCautionSpeed            Int?
     freshCautionLocationFrom     String?
@@ -110,26 +83,26 @@ model Request {
     routeFrom                    String?
     routeTo                      String?
     DisconnAcceptance            Acceptance @default(PENDING)
-
-    user   User?   @relation("UserToRequests", fields: [userId], references: [id])
-    userId String?
-
-    managerAcceptanceId String?
-    managerAcceptance   Boolean @default(false)
+    userId                       String?
+    managerAcceptanceId          String?
+    managerAcceptance            Boolean    @default(false)
+    adminAcceptanceId            String?
+    adminAcceptance              Acceptance @default(PENDING)
+    user                         User?      @relation("UserToRequests", fields: [userId], references: [id])
 
     @@index([userId])
     @@index([managerAcceptanceId])
+    @@index([adminAcceptanceId])
     @@index([createdAt])
 }
 
-// =============================
 model Otp {
     id        String   @id @default(uuid())
     code      String
     createdAt DateTime @default(now())
     validTill DateTime
-    user      User     @relation(fields: [userId], references: [id])
     userId    String
+    user      User     @relation(fields: [userId], references: [id])
 
     @@index([userId])
     @@index([validTill])
@@ -139,10 +112,25 @@ model RefreshToken {
     id        String   @id @default(uuid())
     token     String   @unique
     userId    String
-    user      User     @relation(fields: [userId], references: [id])
     expiresAt DateTime
     createdAt DateTime @default(now())
+    user      User     @relation(fields: [userId], references: [id])
 
     @@index([userId])
     @@index([expiresAt])
+}
+
+enum Role {
+    USER
+    JUNIOR_OFFICER
+    SENIOR_OFFICER
+    BRANCH_OFFICER
+    ADMIN
+    SUPER_ADMIN
+}
+
+enum Acceptance {
+    PENDING
+    ACCEPTED
+    REJECTED
 }

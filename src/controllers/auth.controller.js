@@ -105,6 +105,19 @@ export const getUsersByManagerId = async (req, res) => {
     }
 };
 
+export const getManagerByAdminId = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const result = await authService.getManagerByAdminId(req.user.id, page, limit);
+        return successResponse(res, 200, "Manager retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
+
+
 export const deleteUserById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -114,3 +127,6 @@ export const deleteUserById = async (req, res) => {
         handleError(error, res);
     }
 };
+
+
+

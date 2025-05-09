@@ -127,3 +127,25 @@ export const acceptRequestByManager = async (req, res) => {
         handleError(error, res);
     }
 };
+
+export const acceptRequestByAdmin = async (req, res) => {
+    try {
+        const { id } = requestValidation.requestIdSchema.parse(req.params);
+        const acceptance = req.query.accept === 'true';
+        const request = await requestService.acceptRequestByAdmin(id, acceptance, req.user.id);
+        return successResponse(res, 200, "Request accepted successfully", request);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
+export const getUsersByAdminId = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const result = await requestService.getUsersByAdminId(req.user.id, page, limit);
+        return successResponse(res, 200, "Users retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};

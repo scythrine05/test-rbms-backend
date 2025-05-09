@@ -1,6 +1,6 @@
 import express from "express";
 import * as requestController from "../controllers/user.request.controller.js";
-import { authenticateToken, managerMiddleware } from "../middlewares/auth.middleware.js";
+import { adminMiddleware, authenticateToken, managerMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -26,5 +26,9 @@ router.get("/manager/users-requests", authenticateToken, managerMiddleware, requ
 
 // Accept request by manager
 router.put("/manager/accept/:id", authenticateToken, managerMiddleware, requestController.acceptRequestByManager);
+
+router.put("/admin/accept/:id", authenticateToken, adminMiddleware, requestController.acceptRequestByAdmin);
+
+router.get("/admin/approved", authenticateToken, adminMiddleware, requestController.getUsersByAdminId);
 
 export default router;

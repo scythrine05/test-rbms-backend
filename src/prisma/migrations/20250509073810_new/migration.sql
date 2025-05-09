@@ -17,6 +17,7 @@ CREATE TABLE "User" (
     "managerId" TEXT,
     "location" TEXT NOT NULL,
     "adminId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -76,6 +77,8 @@ CREATE TABLE "Request" (
     "userId" TEXT,
     "managerAcceptanceId" TEXT,
     "managerAcceptance" BOOLEAN NOT NULL DEFAULT false,
+    "adminAcceptanceId" TEXT,
+    "adminAcceptance" "Acceptance" NOT NULL DEFAULT 'PENDING',
 
     CONSTRAINT "Request_pkey" PRIMARY KEY ("id")
 );
@@ -118,6 +121,9 @@ CREATE INDEX "Request_userId_idx" ON "Request"("userId");
 CREATE INDEX "Request_managerAcceptanceId_idx" ON "Request"("managerAcceptanceId");
 
 -- CreateIndex
+CREATE INDEX "Request_adminAcceptanceId_idx" ON "Request"("adminAcceptanceId");
+
+-- CreateIndex
 CREATE INDEX "Request_createdAt_idx" ON "Request"("createdAt");
 
 -- CreateIndex
@@ -136,10 +142,10 @@ CREATE INDEX "RefreshToken_userId_idx" ON "RefreshToken"("userId");
 CREATE INDEX "RefreshToken_expiresAt_idx" ON "RefreshToken"("expiresAt");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Request" ADD CONSTRAINT "Request_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

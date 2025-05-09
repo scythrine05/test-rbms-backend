@@ -166,6 +166,37 @@ export const getUsersByManagerId = async (managerId, page = 1, limit = 10) => {
     };
 };
 
+export const getManagerByAdminId = async (adminId, page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+        prisma.user.findMany({
+            where: { adminId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                depot: true,
+                department: true,
+                phone: true,
+                role: true,
+                location: true,
+                createdAt: true
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit
+        }),
+        prisma.user.count({ where: { managerId } })
+    ]);
+
+    return {
+        users,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+    };
+};
+
 export const deleteUserById = async (id) => {
     const user = await prisma.user.findUnique({
         where: { id }

@@ -228,12 +228,19 @@ export const getManagerUsersRequests = async (managerId, role, page = 1, limit =
 
         const userIds = users.map(user => user.id);
 
+        // put the where condition here
+        const whereCondition = {
+            userId: { in: userIds }
+        }
+
+        if (role === 'ADMIN') {
+            whereCondition.adminAcceptance = 'PENDING'
+            whereCondition.managerAcceptance = true
+        }
         const skip = (page - 1) * limit;
         const [requests, total] = await Promise.all([
             prisma.request.findMany({
-                where: {
-                    userId: { in: userIds }
-                },
+                where: whereCondition,
                 include: {
                     user: {
                         select: {
@@ -326,4 +333,57 @@ export const acceptRequestByManager = async (requestId, managerId) => {
             managerAcceptanceId: managerId
         }
     });
+};
+
+export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
+    const request = await prisma.request.findUnique({
+        where: { id: requestId }
+    });
+
+    if (!request) {
+        throw new Error("Request not found");
+    }
+
+    return await prisma.request.update({
+        where: { id: requestId },
+        data: {
+            adminAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
+            adminAcceptanceId: adminId
+        }
+    });
+};
+
+export const getUsersByAdminId = async (adminId, page = 1, limit = 10) => {
+    console.log(adminId)
+    const skip = (page - 1) * limit;
+    const [requests, total] = await Promise.all([
+        prisma.request.findMany({
+            where: {
+                adminAcceptance: 'ACCEPTED',
+                managerAcceptance: true,
+                adminAcceptanceId: adminId
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit
+        }),
+        prisma.request.count({ where: { adminAcceptance: 'ACCEPTED', managerAcceptance: true } })
+    ]);
+
+    return {
+        requests,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+    };
 };
