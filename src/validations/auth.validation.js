@@ -1,17 +1,14 @@
 import { z } from "zod";
 
-// Common schemas
 const passwordSchema = z
     .string()
     .min(8)
 
-// Login schema
 export const loginSchema = z.object({
     email: z.string().email("Invalid email format"),
     password: z.string().min(1, "Password is required")
 });
 
-// Register user schema (for managers)
 export const registerUserSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email format"),
@@ -23,7 +20,6 @@ export const registerUserSchema = z.object({
     role: z.string().default("USER"),
 });
 
-// Register manager schema (for admins)
 export const registerManagerSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email format"),

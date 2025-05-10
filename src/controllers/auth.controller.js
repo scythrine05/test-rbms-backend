@@ -54,7 +54,7 @@ export const registerUserByManager = async (req, res) => {
 export const registerManager = async (req, res) => {
     try {
         const data = authValidation.registerManagerSchema.parse(req.body);
-        const result = await authService.registerManager(data);
+        const result = await authService.registerManager(data, req.user.id);
         return successResponse(res, 201, "Manager registered successfully", result);
     } catch (error) {
         handleError(error, res);

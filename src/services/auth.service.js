@@ -65,6 +65,7 @@ export const registerUserByManager = async (data, managerId) => {
         throw new Error(`You already have a ${existingOfficer.role} with email: ${existingOfficer.email}`);
     }
 
+
     const hashedPassword = await hashPassword(data.password);
     const user = await prisma.user.create({
         data: {
@@ -77,13 +78,14 @@ export const registerUserByManager = async (data, managerId) => {
 };
 
 // Register manager by admin service
-export const registerManager = async (data) => {
+export const registerManager = async (data, adminId) => {
     const hashedPassword = await hashPassword(data.password);
     const user = await prisma.user.create({
         data: {
             ...data,
             password: hashedPassword,
-            role: "BRANCH_OFFICER"
+            role: "BRANCH_OFFICER",
+            adminId: adminId
         }
     });
     return formatUserData(user);
@@ -186,7 +188,7 @@ export const getManagerByAdminId = async (adminId, page = 1, limit = 10) => {
             skip,
             take: limit
         }),
-        prisma.user.count({ where: { managerId } })
+        prisma.user.count({ where: { adminId } })
     ]);
 
     return {
