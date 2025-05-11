@@ -25,25 +25,38 @@ export const createRequestSchema = z.object({
     selectedDepo: z.string().optional(),
     sigResponse: z.string().optional().default("yes"),
     sntDisconnectionRequired: z.boolean().optional(),
+    powerBlockRequired: z.boolean().optional(),
+    freshCautionRequired: z.boolean().optional(),
+    freshCautionLocationFrom: z.string().optional(),
+    freshCautionLocationTo: z.string().optional(),
+    sntDisconnectionLineTo: z.string().optional(),
+    freshCautionSpeed: z.number().optional(),
+    sntDisconnectionLineFrom: z.string().optional(),
+    sntDisconnectionRequirements: z.array(z.string().optional()).optional(),
+    powerBlockRequirements: z.array(z.string().optional()).optional(),
     ohDisconnection: z.string().optional(),
     oheDisconnection: z.string().optional(),
     oheResponse: z.string().optional().default("yes"),
     corridorType: z.string().optional().default("corridor"),
     sigActionsNeeded: z.boolean().optional().default(true),
-    processedLineSections: z.array(z.object({
-        block: z.string(),
-        type: z.string(),
-        lineName: z.string(),
-        otherLines: z.string(),
-        stream: z.string(),
-        road: z.string(),
-        otherRoads: z.string()
-    })).optional(),
+    processedLineSections: z
+        .array(
+            z.object({
+                block: z.string(),
+                type: z.string(),
+                lineName: z.string(),
+                otherLines: z.string(),
+                stream: z.string(),
+                road: z.string(),
+                otherRoads: z.string(),
+            }),
+        )
+        .optional(),
     trdActionsNeeded: z.boolean().optional().default(true),
     trdWorkLocation: z.string().optional(),
     repercussions: z.string().optional(),
     sigDisconnectionRequirements: z.string().optional(),
-    trdDisconnectionRequirements: z.string().optional()
+    trdDisconnectionRequirements: z.string().optional(),
 });
 
 export const updateRequestSchema = createRequestSchema.partial();
@@ -54,5 +67,5 @@ export const requestIdSchema = z.object({
 
 export const requestStatusSchema = z.object({
     status: z.enum(["PENDING", "APPROVED", "REJECTED"]),
-    ManagerResponse: z.string().optional()
+    ManagerResponse: z.string().optional(),
 });
