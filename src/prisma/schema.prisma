@@ -87,7 +87,7 @@ model Request {
     managerAcceptanceId          String?
     managerAcceptance            Boolean    @default(false)
     adminAcceptanceId            String?
-    adminAcceptance              Acceptance @default(PENDING)
+    adminAcceptance              Boolean    @default(true)
     user                         User?      @relation("UserToRequests", fields: [userId], references: [id])
 
     @@index([userId])

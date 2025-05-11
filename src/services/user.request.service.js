@@ -403,7 +403,6 @@ export const getManagerUsersRequests = async (
 export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => {
     const skip = (page - 1) * limit;
 
-    // helper to fetch child IDs of a given role for a list of parents
     const fetchChildIds = async (parentIds, childRole) => {
         if (!parentIds || parentIds.length === 0) return [];
         const recs = await prisma.user.findMany({
@@ -433,8 +432,7 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
         prisma.request.findMany({
             where: {
                 userId: { in: userIds },
-                managerAcceptance: true,
-                adminAcceptance: "PENDING"
+                managerAcceptance: true
             },
             include: {
                 user: {
@@ -454,7 +452,7 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
             where: {
                 userId: { in: userIds },
                 managerAcceptance: true,
-                adminAcceptance: "PENDING"
+                adminAcceptance: true
             },
         })
     ]);
@@ -497,22 +495,34 @@ export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
     return await prisma.request.update({
         where: { id: requestId },
         data: {
-            adminAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
+            adminAcceptance: acceptance,
             adminAcceptanceId: adminId
         }
     });
 };
 
-export const getUsersByAdminId = async (adminId, page = 1, limit = 10) => {
-    console.log(adminId)
+export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
+
+    // Convert dates to start and end of day in ISO format
+    const startDateTime = startDate ? new Date(startDate + 'T00:00:00.000Z') : undefined;
+    const endDateTime = endDate ? new Date(endDate + 'T23:59:59.999Z') : undefined;
+
+    // Build where clause with date filters
+    const whereClause = {
+        adminAcceptance: true,
+        managerAcceptance: true,
+        // adminAcceptanceId: adminId,
+        ...(startDateTime && endDateTime && {
+            date: {
+                gte: startDateTime,
+                lte: endDateTime
+            }
+        })
+    };
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
-            where: {
-                adminAcceptance: 'ACCEPTED',
-                managerAcceptance: true,
-                adminAcceptanceId: adminId
-            },
+            where: whereClause,
             include: {
                 user: {
                     select: {
@@ -527,13 +537,19 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10) => {
             skip,
             take: limit
         }),
-        prisma.request.count({ where: { adminAcceptance: 'ACCEPTED', managerAcceptance: true } })
+        prisma.request.count({
+            where: whereClause
+        })
     ]);
 
     return {
         requests,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
+        dateRange: {
+            startDate: startDateTime,
+            endDate: endDateTime
+        }
     };
 };
