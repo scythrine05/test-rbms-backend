@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const createRequestSchema = z.object({
+    adminAcceptance: z.boolean().optional().default(false),
     date: z.string().datetime(),
     selectedDepartment: z.string(),
     selectedSection: z.string(),
