@@ -164,6 +164,7 @@ export const getUsersByAdminId = async (req, res) => {
         const result = await requestService.getUsersByAdminId(req.user.id, page, limit, startDate, endDate);
         return successResponse(res, 200, "Users retrieved successfully", result);
     } catch (error) {
+        console.log(error);
         handleError(error, res);
     }
 };

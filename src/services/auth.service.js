@@ -84,7 +84,6 @@ export const registerManager = async (data, adminId) => {
         data: {
             ...data,
             password: hashedPassword,
-            role: "BRANCH_OFFICER",
             adminId: adminId
         }
     });

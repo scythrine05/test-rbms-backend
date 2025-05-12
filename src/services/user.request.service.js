@@ -508,7 +508,6 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
     const startDateTime = startDate ? new Date(startDate + 'T00:00:00.000Z') : undefined;
     const endDateTime = endDate ? new Date(endDate + 'T23:59:59.999Z') : undefined;
 
-    // Build where clause with date filters
     const whereClause = {
         adminAcceptance: true,
         managerAcceptance: true,
@@ -520,6 +519,7 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
             }
         })
     };
+    console.log(whereClause)
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
             where: whereClause,
@@ -541,6 +541,7 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
             where: whereClause
         })
     ]);
+    console.log(requests)
 
     return {
         requests,

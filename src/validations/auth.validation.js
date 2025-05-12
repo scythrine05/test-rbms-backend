@@ -26,7 +26,9 @@ export const registerManagerSchema = z.object({
     password: passwordSchema,
     department: z.string().min(1, "Department is required"),
     phone: z.string().optional(),
-    location: z.string().optional()
+    location: z.string().optional(),
+    depot: z.string().optional(),
+    role: z.string().default("BRANCH_OFFICER"),
 });
 
 // Change password schema
