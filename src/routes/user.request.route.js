@@ -24,7 +24,8 @@ router.put("/other/:id", authenticateToken, requestController.updateOtherRequest
 // Get all requests from manager's users
 router.get("/manager/users-requests", authenticateToken, managerMiddleware, requestController.getManagerUsersRequests);
 
-// Accept request by manager
+router.get("/admin/users-requests", authenticateToken, adminMiddleware, requestController.getAdminUsersRequests);
+
 router.put("/manager/accept/:id", authenticateToken, managerMiddleware, requestController.acceptRequestByManager);
 
 router.put("/admin/accept/:id", authenticateToken, adminMiddleware, requestController.acceptRequestByAdmin);

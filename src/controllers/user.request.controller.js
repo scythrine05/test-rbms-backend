@@ -102,6 +102,22 @@ export const updateOtherRequest = async (req, res) => {
     }
 };
 
+export const getAdminUsersRequests = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const result = await requestService.getAdminPendingRequests(
+            req.user.id,
+            req.user.role,
+            page,
+            limit
+        );
+        return successResponse(res, 200, "Manager's users requests retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
 export const getManagerUsersRequests = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -143,7 +159,9 @@ export const getUsersByAdminId = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const result = await requestService.getUsersByAdminId(req.user.id, page, limit);
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+        const result = await requestService.getUsersByAdminId(req.user.id, page, limit, startDate, endDate);
         return successResponse(res, 200, "Users retrieved successfully", result);
     } catch (error) {
         handleError(error, res);
