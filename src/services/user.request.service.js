@@ -1,14 +1,75 @@
 import prisma from "../prisma/index.js";
 
 export const createRequest = async (data, userId) => {
+    // Create a list of allowed fields from the Prisma schema
+    const allowedFields = [
+        "adminAcceptance",
+        "date",
+        "selectedDepartment",
+        "selectedSection",
+        "stationID",
+        "missionBlock",
+        "workType",
+        "activity",
+        "freshCautionRequired",
+        "freshCautionSpeed",
+        "freshCautionLocationFrom",
+        "freshCautionLocationTo",
+        "adjacentLinesAffected",
+        "workLocationFrom",
+        "workLocationTo",
+        "demandTimeFrom",
+        "demandTimeTo",
+        "sigDisconnection",
+        "elementarySection",
+        "elementarySectionTo",
+        "sigElementarySectionFrom",
+        "sigElementarySectionTo",
+        "repercussions",
+        "trdWorkLocation",
+        "requestremarks",
+        "status",
+        "selectedDepo",
+        "sigResponse",
+        "ohDisconnection",
+        "oheDisconnection",
+        "oheResponse",
+        "corridorType",
+        "corridorTypeSelection",
+        "sigActionsNeeded",
+        "trdActionsNeeded",
+        "ManagerResponse",
+        "sigDisconnectionRequirements",
+        "sntDisconnectionRequirements",
+        "sntDisconnectionLine",
+        "sntDisconnectionLineFrom",
+        "sntDisconnectionLineTo",
+        "trdDisconnectionRequirements",
+        "powerBlockRequirements",
+        "powerBlockRequired",
+        "sntDisconnectionRequired",
+        "processedLineSections",
+        "routeFrom",
+        "routeTo",
+        "DisconnAcceptance",
+        "managerAcceptanceId",
+        "managerAcceptance",
+        "adminAcceptanceId",
+        "sntDisconnectionAssignTo",
+    ];
+
+    // Filter out any fields that aren't in the allowedFields list
+    const filteredData = Object.fromEntries(
+        Object.entries(data).filter(([key]) => allowedFields.includes(key)),
+    );
 
     return await prisma.request.create({
         data: {
-            ...data,
+            ...filteredData,
             userId,
-            status: "PENDING"
-        }
-    })
+            status: "PENDING",
+        },
+    });
 };
 
 export const getRequestById = async (id) => {
@@ -20,8 +81,8 @@ export const getRequestById = async (id) => {
                     id: true,
                     name: true,
                     email: true,
-                    role: true
-                }
+                    role: true,
+                },
             },
             //     manager: {
             //         select: {
@@ -31,7 +92,7 @@ export const getRequestById = async (id) => {
             //             role: true
             //         }
             //     }
-        }
+        },
     });
     if (!request) throw new Error("Request not found");
     return request;
@@ -40,13 +101,13 @@ export const getRequestById = async (id) => {
 export const updateRequest = async (id, data) => {
     return await prisma.request.update({
         where: { id },
-        data
+        data,
     });
 };
 
 export const deleteRequest = async (id) => {
     return await prisma.request.delete({
-        where: { id }
+        where: { id },
     });
 };
 
@@ -56,8 +117,8 @@ export const updateRequestStatus = async (id, status, managerId, ManagerResponse
         data: {
             status,
             managerId,
-            ManagerResponse
-        }
+            ManagerResponse,
+        },
     });
 };
 
@@ -84,18 +145,18 @@ export const getUserRequests = async (userId, page = 1, limit = 10) => {
             //     }
             // }
             // },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip,
-            take: limit
+            take: limit,
         }),
-        prisma.request.count({ where: { userId } })
+        prisma.request.count({ where: { userId } }),
     ]);
 
     return {
         requests,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
     };
 };
 
@@ -110,42 +171,51 @@ export const getManagerRequests = async (managerId, page = 1, limit = 10) => {
                         id: true,
                         name: true,
                         email: true,
-                        role: true
-                    }
+                        role: true,
+                    },
                 },
                 manager: {
                     select: {
                         id: true,
                         name: true,
                         email: true,
-                        role: true
-                    }
-                }
+                        role: true,
+                    },
+                },
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip,
-            take: limit
+            take: limit,
         }),
-        prisma.request.count({ where: { managerId } })
+        prisma.request.count({ where: { managerId } }),
     ]);
 
     return {
         requests,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
     };
 };
 
-export const getOtherRequests = async (selectedDepo, page = 1, limit = 10) => {
+export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userEmail) => {
     const skip = (page - 1) * limit;
+
+    // Build the where clause
+    const whereClause = {
+        // managerAcceptance: true,
+        sntDisconnectionRequired: true,
+        selectedDepo: selectedDepo,
+    };
+
+    // Only add the email filter if it's provided
+    if (userEmail) {
+        whereClause.sntDisconnectionAssignTo = userEmail;
+    }
+
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
-            where: {
-                managerAcceptance: true,
-                sntDisconnectionRequired: true,
-                selectedDepo: selectedDepo
-            },
+            where: whereClause,
             // include: {
             //     user: {
             //         select: {
@@ -156,48 +226,38 @@ export const getOtherRequests = async (selectedDepo, page = 1, limit = 10) => {
             //         }
             //     },
             // },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip,
-            take: limit
+            take: limit,
         }),
         prisma.request.count({
-            where: {
-                managerAcceptance: true,
-                sntDisconnectionRequired: true,
-                selectedDepo: selectedDepo
-            }
-        })
+            where: whereClause,
+        }),
     ]);
 
     return {
         requests,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
     };
 };
 
 export const updateOtherRequest = async (id, acceptance) => {
-    console.log(acceptance ? "ACCEPTED" : "REJECTED")
+    console.log(acceptance ? "ACCEPTED" : "REJECTED");
     return await prisma.request.update({
         where: { id },
         data: {
-            DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED"
-        }
+            DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
+        },
     });
 };
 
-export const getManagerUsersRequests = async (
-    managerId,
-    role,
-    page = 1,
-    limit = 10
-) => {
+export const getManagerUsersRequests = async (managerId, role, page = 1, limit = 10) => {
     const skip = (page - 1) * limit;
 
     // helper to fetch direct reports of a given role
     const fetchIds = async (ids, targetRole, field = "managerId") => {
-
         if (ids.length === 0) return [];
         const records = await prisma.user.findMany({
             where: { [field]: { in: ids }, role: targetRole },
@@ -210,30 +270,34 @@ export const getManagerUsersRequests = async (
     let userIds = [];
 
     if (role === "BRANCH_OFFICER") {
-        const seniorIds = await prisma.user.findMany({
-            where: { managerId, role: "SENIOR_OFFICER" },
-            select: { id: true },
-        }).then((recs) => recs.map((r) => r.id));
+        const seniorIds = await prisma.user
+            .findMany({
+                where: { managerId, role: "SENIOR_OFFICER" },
+                select: { id: true },
+            })
+            .then((recs) => recs.map((r) => r.id));
         console.log(seniorIds);
         const juniorIds = await fetchIds(seniorIds, "JUNIOR_OFFICER");
         console.log(juniorIds);
         userIds = await fetchIds(juniorIds, "USER");
     } else if (role === "SENIOR_OFFICER") {
         // Senior → Juniors → Users
-        const juniorIds = await prisma.user.findMany({
-            where: { managerId, role: "JUNIOR_OFFICER" },
-            select: { id: true },
-        }).then((recs) => recs.map((r) => r.id));
+        const juniorIds = await prisma.user
+            .findMany({
+                where: { managerId, role: "JUNIOR_OFFICER" },
+                select: { id: true },
+            })
+            .then((recs) => recs.map((r) => r.id));
 
         userIds = await fetchIds(juniorIds, "USER");
-
     } else if (role === "JUNIOR_OFFICER") {
         // Junior → Users
-        userIds = await prisma.user.findMany({
-            where: { managerId, role: "USER" },
-            select: { id: true },
-        }).then((recs) => recs.map((r) => r.id));
-
+        userIds = await prisma.user
+            .findMany({
+                where: { managerId, role: "USER" },
+                select: { id: true },
+            })
+            .then((recs) => recs.map((r) => r.id));
     } else {
         throw new Error(`Role ${role} is not supported for this endpoint.`);
     }
@@ -409,16 +473,16 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
             where: { managerId: { in: parentIds }, role: childRole },
             select: { id: true },
         });
-        return recs.map(r => r.id);
+        return recs.map((r) => r.id);
     };
 
     // 1) Gather all User IDs under this Admin's hierarchy:
     //    Admin → Branch Officers → Senior Officers → Junior Officers → Users
     const branchRecs = await prisma.user.findMany({
         where: { adminId, role: "BRANCH_OFFICER" },
-        select: { id: true }
+        select: { id: true },
     });
-    const branchIds = branchRecs.map(r => r.id);
+    const branchIds = branchRecs.map((r) => r.id);
 
     const seniorIds = await fetchChildIds(branchIds, "SENIOR_OFFICER");
     const juniorIds = await fetchChildIds(seniorIds, "JUNIOR_OFFICER");
@@ -432,7 +496,7 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
         prisma.request.findMany({
             where: {
                 userId: { in: userIds },
-                managerAcceptance: true
+                managerAcceptance: true,
             },
             include: {
                 user: {
@@ -442,9 +506,9 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
                         email: true,
                         role: true,
                         depot: true,
-                        department: true
-                    }
-                }
+                        department: true,
+                    },
+                },
             },
             orderBy: { createdAt: "desc" },
         }),
@@ -452,22 +516,22 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
             where: {
                 userId: { in: userIds },
                 managerAcceptance: true,
-                adminAcceptance: true
+                adminAcceptance: true,
             },
-        })
+        }),
     ]);
 
     return {
         requests,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
     };
 };
 
 export const acceptRequestByManager = async (requestId, managerId) => {
     const request = await prisma.request.findUnique({
-        where: { id: requestId }
+        where: { id: requestId },
     });
 
     if (!request) {
@@ -478,14 +542,14 @@ export const acceptRequestByManager = async (requestId, managerId) => {
         where: { id: requestId },
         data: {
             managerAcceptance: true,
-            managerAcceptanceId: managerId
-        }
+            managerAcceptanceId: managerId,
+        },
     });
 };
 
 export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
     const request = await prisma.request.findUnique({
-        where: { id: requestId }
+        where: { id: requestId },
     });
 
     if (!request) {
@@ -496,8 +560,8 @@ export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
         where: { id: requestId },
         data: {
             adminAcceptance: acceptance,
-            adminAcceptanceId: adminId
-        }
+            adminAcceptanceId: adminId,
+        },
     });
 };
 
@@ -505,21 +569,22 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
     const skip = (page - 1) * limit;
 
     // Convert dates to start and end of day in ISO format
-    const startDateTime = startDate ? new Date(startDate + 'T00:00:00.000Z') : undefined;
-    const endDateTime = endDate ? new Date(endDate + 'T23:59:59.999Z') : undefined;
+    const startDateTime = startDate ? new Date(startDate + "T00:00:00.000Z") : undefined;
+    const endDateTime = endDate ? new Date(endDate + "T23:59:59.999Z") : undefined;
 
     const whereClause = {
         adminAcceptance: true,
         managerAcceptance: true,
         // adminAcceptanceId: adminId,
-        ...(startDateTime && endDateTime && {
-            date: {
-                gte: startDateTime,
-                lte: endDateTime
-            }
-        })
+        ...(startDateTime &&
+            endDateTime && {
+                date: {
+                    gte: startDateTime,
+                    lte: endDateTime,
+                },
+            }),
     };
-    console.log(whereClause)
+    console.log(whereClause);
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
             where: whereClause,
@@ -529,19 +594,19 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
                         id: true,
                         name: true,
                         email: true,
-                        role: true
-                    }
-                }
+                        role: true,
+                    },
+                },
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip,
-            take: limit
+            take: limit,
         }),
         prisma.request.count({
-            where: whereClause
-        })
+            where: whereClause,
+        }),
     ]);
-    console.log(requests)
+    console.log(requests);
 
     return {
         requests,
@@ -550,7 +615,7 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
         totalPages: Math.ceil(total / limit),
         dateRange: {
             startDate: startDateTime,
-            endDate: endDateTime
-        }
+            endDate: endDateTime,
+        },
     };
 };

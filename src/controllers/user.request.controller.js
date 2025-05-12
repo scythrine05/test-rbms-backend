@@ -50,7 +50,12 @@ export const updateRequestStatus = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
         const { status, ManagerResponse } = requestValidation.requestStatusSchema.parse(req.body);
-        const request = await requestService.updateRequestStatus(id, status, req.user.id, ManagerResponse);
+        const request = await requestService.updateRequestStatus(
+            id,
+            status,
+            req.user.id,
+            ManagerResponse,
+        );
         return successResponse(res, 200, "Request status updated successfully", request);
     } catch (error) {
         handleError(error, res);
@@ -84,7 +89,19 @@ export const getOtherRequests = async (req, res) => {
         const { selectedDepo } = req.params;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const result = await requestService.getOtherRequests(selectedDepo, page, limit);
+
+        if (!req.user || !req.user.email) {
+            return res.status(400).json({
+                status: false,
+                message: "User email unavailable",
+            });
+        }
+        const result = await requestService.getOtherRequests(
+            selectedDepo,
+            page,
+            limit,
+            req.user.email,
+        );
         return successResponse(res, 200, "Other requests retrieved successfully", result);
     } catch (error) {
         handleError(error, res);
@@ -94,7 +111,7 @@ export const getOtherRequests = async (req, res) => {
 export const updateOtherRequest = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
-        const acceptance = req.query.accept === 'true';
+        const acceptance = req.query.accept === "true";
         const request = await requestService.updateOtherRequest(id, acceptance);
         return successResponse(res, 200, "Other request updated successfully", request);
     } catch (error) {
@@ -110,7 +127,7 @@ export const getAdminUsersRequests = async (req, res) => {
             req.user.id,
             req.user.role,
             page,
-            limit
+            limit,
         );
         return successResponse(res, 200, "Manager's users requests retrieved successfully", result);
     } catch (error) {
@@ -126,7 +143,7 @@ export const getManagerUsersRequests = async (req, res) => {
             req.user.id,
             req.user.role,
             page,
-            limit
+            limit,
         );
         return successResponse(res, 200, "Manager's users requests retrieved successfully", result);
     } catch (error) {
@@ -147,7 +164,7 @@ export const acceptRequestByManager = async (req, res) => {
 export const acceptRequestByAdmin = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
-        const acceptance = req.query.accept === 'true';
+        const acceptance = req.query.accept === "true";
         const request = await requestService.acceptRequestByAdmin(id, acceptance, req.user.id);
         return successResponse(res, 200, "Request accepted successfully", request);
     } catch (error) {
@@ -161,7 +178,13 @@ export const getUsersByAdminId = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
-        const result = await requestService.getUsersByAdminId(req.user.id, page, limit, startDate, endDate);
+        const result = await requestService.getUsersByAdminId(
+            req.user.id,
+            page,
+            limit,
+            startDate,
+            endDate,
+        );
         return successResponse(res, 200, "Users retrieved successfully", result);
     } catch (error) {
         console.log(error);

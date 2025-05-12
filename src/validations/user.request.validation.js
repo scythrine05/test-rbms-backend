@@ -33,6 +33,7 @@ export const createRequestSchema = z.object({
     sntDisconnectionLineTo: z.string().optional(),
     freshCautionSpeed: z.number().optional(),
     sntDisconnectionLineFrom: z.string().optional(),
+    sntDisconnectionAssignTo: z.string().optional(),
     sntDisconnectionRequirements: z.array(z.string().optional()).optional(),
     powerBlockRequirements: z.array(z.string().optional()).optional(),
     ohDisconnection: z.string().optional(),
