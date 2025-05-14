@@ -14,7 +14,7 @@
         "test": "npm run test",
         "format:check": "prettier --check .",
         "format:fix": "prettier --write .",
-        "prepare": "husky",
+        "prepare": "husky install",
         "prisma:generate": "cd src && npx prisma generate",
         "prisma:migrate": "cd src && npx prisma migrate dev",
         "prisma:migrate:prod": "cd src && npx prisma migrate deploy",
