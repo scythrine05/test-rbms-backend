@@ -108,12 +108,46 @@ export const getOtherRequests = async (req, res) => {
     }
 };
 
+export const getTrdRequests = async (req, res) => {
+    try {
+        const { selectedDepo } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        if (!req.user || !req.user.email) {
+            return res.status(400).json({
+                status: false,
+                message: "User email unavailable",
+            });
+        }
+        const result = await requestService.getTrdRequests(
+            selectedDepo,
+            page,
+            limit,
+            req.user.email,
+        );
+        return successResponse(res, 200, "TRD requests retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
 export const updateOtherRequest = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
+        const { disconnectionRequestRejectRemarks } = requestValidation.updateOtherRequestSchema.parse(req.body);
         const acceptance = req.query.accept === "true";
-        const request = await requestService.updateOtherRequest(id, acceptance);
-        return successResponse(res, 200, "Other request updated successfully", request);
+        
+        // For rejection, remarks are required
+        if (!acceptance && !disconnectionRequestRejectRemarks) {
+            return res.status(400).json({
+                status: false,
+                message: "Rejection remarks are required",
+            });
+        }
+        
+        const request = await requestService.updateOtherRequest(id, acceptance, disconnectionRequestRejectRemarks);
+        return successResponse(res, 200, "Request updated successfully", request);
     } catch (error) {
         handleError(error, res);
     }

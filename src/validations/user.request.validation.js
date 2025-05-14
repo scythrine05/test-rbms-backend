@@ -59,6 +59,7 @@ export const createRequestSchema = z.object({
     repercussions: z.string().optional(),
     sigDisconnectionRequirements: z.string().optional(),
     trdDisconnectionRequirements: z.string().optional(),
+    trdDisconnectionAssignTo: z.string().optional(),
 });
 
 export const updateRequestSchema = createRequestSchema.partial();
@@ -70,4 +71,8 @@ export const requestIdSchema = z.object({
 export const requestStatusSchema = z.object({
     status: z.enum(["PENDING", "APPROVED", "REJECTED"]),
     ManagerResponse: z.string().optional(),
+});
+
+export const updateOtherRequestSchema = z.object({
+    disconnectionRequestRejectRemarks: z.string().optional(),
 });

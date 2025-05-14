@@ -56,6 +56,7 @@ export const createRequest = async (data, userId) => {
         "managerAcceptance",
         "adminAcceptanceId",
         "sntDisconnectionAssignTo",
+        "trdDisconnectionAssignTo",
     ];
 
     // Filter out any fields that aren't in the allowedFields list
@@ -203,29 +204,22 @@ export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userE
 
     // Build the where clause
     const whereClause = {
-        // managerAcceptance: true,
-        sntDisconnectionRequired: true,
         selectedDepo: selectedDepo,
+        OR: [
+            {
+                sntDisconnectionRequired: true,
+                sntDisconnectionAssignTo: userEmail,
+            },
+            {
+                trdActionsNeeded: true, 
+                trdDisconnectionAssignTo: userEmail,
+            }
+        ]
     };
-
-    // Only add the email filter if it's provided
-    if (userEmail) {
-        whereClause.sntDisconnectionAssignTo = userEmail;
-    }
 
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
             where: whereClause,
-            // include: {
-            //     user: {
-            //         select: {
-            //             id: true,
-            //             name: true,
-            //             email: true,
-            //             role: true
-            //         }
-            //     },
-            // },
             orderBy: { createdAt: "desc" },
             skip,
             take: limit,
@@ -243,12 +237,13 @@ export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userE
     };
 };
 
-export const updateOtherRequest = async (id, acceptance) => {
+export const updateOtherRequest = async (id, acceptance, disconnectionRequestRejectRemarks) => {
     console.log(acceptance ? "ACCEPTED" : "REJECTED");
     return await prisma.request.update({
         where: { id },
         data: {
             DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
+            disconnectionRequestRejectRemarks: !acceptance ? disconnectionRequestRejectRemarks : null,
         },
     });
 };
@@ -617,5 +612,39 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
             startDate: startDateTime,
             endDate: endDateTime,
         },
+    };
+};
+
+export const getTrdRequests = async (selectedDepo, page = 1, limit = 10, userEmail) => {
+    const skip = (page - 1) * limit;
+
+    // Build the where clause
+    const whereClause = {
+        trdActionsNeeded: true,
+        selectedDepo: selectedDepo,
+    };
+
+    // Only add the email filter if it's provided
+    if (userEmail) {
+        whereClause.trdDisconnectionAssignTo = userEmail;
+    }
+
+    const [requests, total] = await Promise.all([
+        prisma.request.findMany({
+            where: whereClause,
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: limit,
+        }),
+        prisma.request.count({
+            where: whereClause,
+        }),
+    ]);
+
+    return {
+        requests,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
     };
 };
