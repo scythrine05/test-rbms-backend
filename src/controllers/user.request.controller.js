@@ -135,9 +135,10 @@ export const getTrdRequests = async (req, res) => {
 export const updateOtherRequest = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
-        const { disconnectionRequestRejectRemarks } = requestValidation.updateOtherRequestSchema.parse(req.body);
+        const { disconnectionRequestRejectRemarks } =
+            requestValidation.updateOtherRequestSchema.parse(req.body);
         const acceptance = req.query.accept === "true";
-        
+
         // For rejection, remarks are required
         if (!acceptance && !disconnectionRequestRejectRemarks) {
             return res.status(400).json({
@@ -145,8 +146,12 @@ export const updateOtherRequest = async (req, res) => {
                 message: "Rejection remarks are required",
             });
         }
-        
-        const request = await requestService.updateOtherRequest(id, acceptance, disconnectionRequestRejectRemarks);
+
+        const request = await requestService.updateOtherRequest(
+            id,
+            acceptance,
+            disconnectionRequestRejectRemarks,
+        );
         return successResponse(res, 200, "Request updated successfully", request);
     } catch (error) {
         handleError(error, res);
@@ -185,11 +190,30 @@ export const getManagerUsersRequests = async (req, res) => {
     }
 };
 
+// export const acceptRequestByManager = async (req, res) => {
+//     try {
+//         const { id } = requestValidation.requestIdSchema.parse(req.params);
+//         const request = await requestService.acceptRequestByManager(id, req.user.id);
+//         return successResponse(res, 200, "Request accepted successfully", request);
+//     } catch (error) {
+//         handleError(error, res);
+//     }
+// };
+
 export const acceptRequestByManager = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
-        const request = await requestService.acceptRequestByManager(id, req.user.id);
-        return successResponse(res, 200, "Request accepted successfully", request);
+
+        const { isAccept } = req.body;
+
+        const request = await requestService.acceptRequestByManager(id, req.user.id, isAccept);
+
+        return successResponse(
+            res,
+            200,
+            `Request ${isAccept ? "accepted" : "rejected"} successfully`,
+            request,
+        );
     } catch (error) {
         handleError(error, res);
     }

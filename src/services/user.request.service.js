@@ -524,7 +524,25 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
     };
 };
 
-export const acceptRequestByManager = async (requestId, managerId) => {
+// export const acceptRequestByManager = async (requestId, managerId) => {
+//     const request = await prisma.request.findUnique({
+//         where: { id: requestId },
+//     });
+
+//     if (!request) {
+//         throw new Error("Request not found");
+//     }
+
+//     return await prisma.request.update({
+//         where: { id: requestId },
+//         data: {
+//             managerAcceptance: true,
+//             managerAcceptanceId: managerId,
+//         },
+//     });
+// };
+
+export const acceptRequestByManager = async (requestId, managerId, isAccept) => {
     const request = await prisma.request.findUnique({
         where: { id: requestId },
     });
@@ -536,8 +554,9 @@ export const acceptRequestByManager = async (requestId, managerId) => {
     return await prisma.request.update({
         where: { id: requestId },
         data: {
-            managerAcceptance: true,
+            managerAcceptance: isAccept,
             managerAcceptanceId: managerId,
+            status: isAccept ? "APPROVED" : "REJECTED",  // Update status based on isAccept
         },
     });
 };
