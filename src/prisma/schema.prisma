@@ -92,7 +92,7 @@ model Request {
   adminAcceptanceId            String?
   adminAcceptance              Boolean    @default(true)
   user                         User?      @relation("UserToRequests", fields: [userId], references: [id])
-
+  remarkByManager              String?    
   @@index([userId])
   @@index([managerAcceptanceId])
   @@index([adminAcceptanceId])

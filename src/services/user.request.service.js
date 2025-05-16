@@ -542,7 +542,25 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
 //     });
 // };
 
-export const acceptRequestByManager = async (requestId, managerId, isAccept) => {
+// export const acceptRequestByManager = async (requestId, managerId, isAccept) => {
+//     const request = await prisma.request.findUnique({
+//         where: { id: requestId },
+//     });
+
+//     if (!request) {
+//         throw new Error("Request not found");
+//     }
+
+//     return await prisma.request.update({
+//         where: { id: requestId },
+//         data: {
+//             managerAcceptance: isAccept,
+//             managerAcceptanceId: managerId,
+//             status: isAccept ? "APPROVED" : "REJECTED",  // Update status based on isAccept
+//         },
+//     });
+// };
+export const acceptRequestByManager = async (requestId, managerId, isAccept, remark) => {
     const request = await prisma.request.findUnique({
         where: { id: requestId },
     });
@@ -556,7 +574,8 @@ export const acceptRequestByManager = async (requestId, managerId, isAccept) => 
         data: {
             managerAcceptance: isAccept,
             managerAcceptanceId: managerId,
-            status: isAccept ? "APPROVED" : "REJECTED",  // Update status based on isAccept
+            status: isAccept ? "APPROVED" : "REJECTED",
+            remarkByManager: remark || null, // Store the rejection reason
         },
     });
 };

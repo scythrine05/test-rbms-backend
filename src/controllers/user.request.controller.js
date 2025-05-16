@@ -200,13 +200,30 @@ export const getManagerUsersRequests = async (req, res) => {
 //     }
 // };
 
+// export const acceptRequestByManager = async (req, res) => {
+//     try {
+//         const { id } = requestValidation.requestIdSchema.parse(req.params);
+
+//         const { isAccept } = req.body;
+
+//         const request = await requestService.acceptRequestByManager(id, req.user.id, isAccept);
+
+//         return successResponse(
+//             res,
+//             200,
+//             `Request ${isAccept ? "accepted" : "rejected"} successfully`,
+//             request,
+//         );
+//     } catch (error) {
+//         handleError(error, res);
+//     }
+// };
 export const acceptRequestByManager = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
+        const { isAccept, remark } = req.body;
 
-        const { isAccept } = req.body;
-
-        const request = await requestService.acceptRequestByManager(id, req.user.id, isAccept);
+        const request = await requestService.acceptRequestByManager(id, req.user.id, isAccept, remark);
 
         return successResponse(
             res,
