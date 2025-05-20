@@ -92,11 +92,32 @@ model Request {
   adminAcceptanceId            String?
   adminAcceptance              Boolean    @default(true)
   user                         User?      @relation("UserToRequests", fields: [userId], references: [id])
+<<<<<<< Updated upstream
 
+=======
+  remarkByManager              String?    
+  adminRequestStatus           String?    @default("PENDING")
+  optimizeStatus               Boolean    @default(false)
+  optimizeTimeFrom             DateTime?
+  optimizeTimeTo               DateTime?
+>>>>>>> Stashed changes
   @@index([userId])
   @@index([managerAcceptanceId])
   @@index([adminAcceptanceId])
   @@index([createdAt])
+}
+model Optimize_Table{
+  id                      String   @id @default(uuid())
+  optimizeTimeFrom        DateTime
+  optimizeTimeTo          DateTime
+  date                    DateTime
+  missionBlock            String
+  otherAffectedLine       String
+  selectedDepartment      String
+  selectedDepo            String
+  selectedLine            String
+  selectedSection         String
+  selectedStream          String
 }
 
 model Otp {

@@ -123,29 +123,13 @@ export const updateRequestStatus = async (id, status, managerId, ManagerResponse
     });
 };
 
+
+
 export const getUserRequests = async (userId, page = 1, limit = 10) => {
     const skip = (page - 1) * limit;
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
             where: { userId },
-            // include: {
-            // user: {
-            //     select: {
-            //         id: true,
-            //         name: true,
-            //         email: true,
-            //         role: true
-            //     }
-            // },
-            // manager: {
-            //     select: {
-            //         id: true,
-            //         name: true,
-            //         email: true,
-            //         role: true
-            //     }
-            // }
-            // },
             orderBy: { createdAt: "desc" },
             skip,
             take: limit,
@@ -160,7 +144,26 @@ export const getUserRequests = async (userId, page = 1, limit = 10) => {
         totalPages: Math.ceil(total / limit),
     };
 };
+export const getUserRequestsData = async (userId, page = 1, limit = 30) => {
+    const skip = (page - 1) * limit;
+    const [requests, total] = await Promise.all([
+        prisma.request.findMany({
+            where: { userId,optimizeStatus:true },
+            
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: limit,
+        }),
+        prisma.request.count({ where: { userId } }),
+    ]);
 
+    return {
+        requests,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+    };
+};
 export const getManagerRequests = async (managerId, page = 1, limit = 10) => {
     const skip = (page - 1) * limit;
     const [requests, total] = await Promise.all([
@@ -575,6 +578,7 @@ export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
         data: {
             adminAcceptance: acceptance,
             adminAcceptanceId: adminId,
+            adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED"
         },
     });
 };
@@ -588,6 +592,7 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
 
     const whereClause = {
         adminAcceptance: true,
+        adminRequestStatus:"ACCEPTED",
         managerAcceptance: true,
         // adminAcceptanceId: adminId,
         ...(startDateTime &&
@@ -634,6 +639,140 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
     };
 };
 
+
+
+
+
+
+
+export const approveAllPendingRequests = async (adminId) => {
+  return await prisma.$transaction(async (tx) => {
+    // First get all pending requests that will be updated
+    const pendingRequests = await tx.request.findMany({
+      where: {
+        adminRequestStatus: 'PENDING',
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (pendingRequests.length === 0) {
+      throw new Error('No pending requests found');
+    }
+
+    // Update all pending requests - removed updatedAt
+    await tx.request.updateMany({
+      where: {
+        adminRequestStatus: 'PENDING',
+      },
+      data: {
+        adminRequestStatus: 'ACCEPTED',
+        adminAcceptance: true,
+        adminAcceptanceId: adminId,
+        // Removed: updatedAt: new Date(),
+      },
+    });
+
+    return {
+      count: pendingRequests.length,
+      requestIds: pendingRequests.map(req => req.id),
+    };
+  });
+};
+
+
+
+// export const saveOptimizedData = async (optimizedData) => {
+//     try {
+//         const created = await prisma.optimize_Table.createMany({
+//             data: optimizedData.map(request => {
+//                 // Combine date with time for proper DateTime format
+//                 const timeFrom = new Date(`${request.date}T${request.demandTimeFrom}:00`);
+//                 const timeTo = new Date(`${request.date}T${request.demandTimeTo}:00`);
+                
+//                 return {
+//                     id: request.id,
+//                     optimizeTimeFrom: timeFrom,
+//                     optimizeTimeTo: timeTo,
+//                     date: new Date(request.date),
+//                     missionBlock: request.missionBlock,
+//                     otherAffectedLine: request.otherAffectedLine,
+//                     selectedDepartment: request.selectedDepartment,
+//                     selectedDepo: request.selectedDepo,
+//                     selectedStream: request.selectedStream,
+//                     selectedLine: request.selectedLine || 
+//                                 request.processedLineSections?.[0]?.lineName || 
+//                                 'N/A',
+//                     selectedSection: request.selectedSection,
+//                 };
+//             }),
+//             skipDuplicates: true
+//         });
+
+//         return { 
+//             success: true, 
+//             count: created.count,
+//             message: `${created.count} new optimized records added`
+//         };
+//     } catch (error) {
+//         console.error('Failed to add optimized data:', error);
+//         throw new Error('Database operation failed');
+//     } 
+// };
+export const saveOptimizedData = async (optimizedData) => {
+    try {
+        // First, create the optimized records
+        const created = await prisma.optimize_Table.createMany({
+            data: optimizedData.map(request => {
+                // Combine date with time for proper DateTime format
+                const timeFrom = new Date(`${request.date}T${request.demandTimeFrom}:00`);
+                const timeTo = new Date(`${request.date}T${request.demandTimeTo}:00`);
+                
+                return {
+                    id: request.id,
+                    optimizeTimeFrom: timeFrom,
+                    optimizeTimeTo: timeTo,
+                    date: new Date(request.date),
+                    missionBlock: request.missionBlock,
+                    otherAffectedLine: request.otherAffectedLine,
+                    selectedDepartment: request.selectedDepartment,
+                    selectedDepo: request.selectedDepo,
+                    selectedStream: request.selectedStream,
+                    selectedLine: request.selectedLine || 
+                                request.processedLineSections?.[0]?.lineName || 
+                                'N/A',
+                    selectedSection: request.selectedSection,
+                };
+            }),
+            skipDuplicates: true
+        });
+
+        // Then update the original requests with the optimized times
+        await Promise.all(optimizedData.map(async (request) => {
+            const timeFrom = new Date(`${request.date}T${request.demandTimeFrom}:00`);
+            const timeTo = new Date(`${request.date}T${request.demandTimeTo}:00`);
+            
+            await prisma.Request.update({
+                where: { id: request.id },
+                data: {
+                    optimizeTimeFrom: timeFrom,
+                    optimizeTimeTo: timeTo
+                }
+            });
+        }));
+
+        return { 
+            success: true, 
+            count: created.count,
+            message: `${created.count} new optimized records added and requests updated`
+        };
+    } catch (error) {
+        console.error('Failed to process optimized data:', error);
+        throw new Error('Database operation failed');
+    } 
+};
+
 export const getTrdRequests = async (selectedDepo, page = 1, limit = 10, userEmail) => {
     const skip = (page - 1) * limit;
 
@@ -667,3 +806,83 @@ export const getTrdRequests = async (selectedDepo, page = 1, limit = 10, userEma
         totalPages: Math.ceil(total / limit),
     };
 };
+
+export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, endDate) => {
+    const skip = (page - 1) * limit;
+
+    // Convert dates
+    const startDateTime = startDate ? new Date(startDate + "T00:00:00.000Z") : undefined;
+    const endDateTime = endDate ? new Date(endDate + "T23:59:59.999Z") : undefined;
+
+    // 1. Get optimized IDs
+    const optimizedIds = await prisma.optimize_Table.findMany({
+        select: { id: true }
+    });
+    const optimizedIdList = optimizedIds.map(item => item.id);
+
+    // 2. Get matching requests
+    const whereClause = {
+        id: { in: optimizedIdList },
+        adminAcceptance: true,
+        adminRequestStatus: "ACCEPTED",
+        managerAcceptance: true,
+        ...(startDateTime && endDateTime && {
+            date: { gte: startDateTime, lte: endDateTime }
+        })
+    };
+
+    const [requests, total] = await Promise.all([
+        prisma.request.findMany({
+            where: whereClause,
+            include: { user: { select: { id: true, name: true, email: true, role: true } } },
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: limit,
+        }),
+        prisma.request.count({ where: whereClause })
+    ]);
+
+    // 3. Get optimize data separately if needed
+    const optimizeData = await prisma.optimize_Table.findMany({
+        where: { id: { in: optimizedIdList } }
+    });
+
+    // Combine data
+    const result = requests.map(request => ({
+        ...request,
+        optimizeData: optimizeData.find(opt => opt.id === request.id)
+    }));
+
+    return {
+        requests: result,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        dateRange: { startDate: startDateTime, endDate: endDateTime }
+    };
+};
+
+
+export const saveOptimizedRequestsStatus = async (requestIds) => {
+  try {
+    await prisma.Request.updateMany({
+      where: { 
+        id: { in: requestIds } 
+      },
+      data: {
+        optimizeStatus: true,
+      },
+    });
+
+    return {
+      success: true,
+      message: `${requestIds.length} requests marked as optimized`,
+    };
+  } catch (error) {
+    console.error("Failed to update optimized status:", error);
+    throw new Error("Database operation failed");
+  }
+};
+
+
+
