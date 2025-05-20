@@ -545,7 +545,7 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
 //     });
 // };
 
-export const acceptRequestByManager = async (requestId, managerId, isAccept) => {
+export const acceptRequestByManager = async (requestId, managerId, isAccept,remark) => {
     const request = await prisma.request.findUnique({
         where: { id: requestId },
     });
@@ -560,6 +560,7 @@ export const acceptRequestByManager = async (requestId, managerId, isAccept) => 
             managerAcceptance: isAccept,
             managerAcceptanceId: managerId,
             status: isAccept ? "APPROVED" : "REJECTED",  // Update status based on isAccept
+            remarkByManager: remark || null,
         },
     });
 };

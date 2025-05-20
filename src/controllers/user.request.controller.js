@@ -218,9 +218,9 @@ export const acceptRequestByManager = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
 
-        const { isAccept } = req.body;
+        const { isAccept,remark } = req.body;
 
-        const request = await requestService.acceptRequestByManager(id, req.user.id, isAccept);
+        const request = await requestService.acceptRequestByManager(id, req.user.id, isAccept,remark);
 
         return successResponse(
             res,
