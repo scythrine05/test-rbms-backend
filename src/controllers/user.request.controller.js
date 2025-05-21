@@ -332,79 +332,79 @@ export const acceptRequestByAdmin = async (req, res) => {
         handleError(error, res);
     }
 };
-export const approveAllPendingRequests = async (req, res) => {
-  try {
-    const adminId = req.user.id; // Assuming user ID is available from auth middleware
-    const result = await requestService.approveAllPendingRequests(adminId);
-    return successResponse(res, 200, 'All pending requests approved successfully', result);
-  } catch (error) {
-    handleError(error, res);
-  }
-};
+// export const approveAllPendingRequests = async (req, res) => {
+//   try {
+//     const adminId = req.user.id; // Assuming user ID is available from auth middleware
+//     const result = await requestService.approveAllPendingRequests(adminId);
+//     return successResponse(res, 200, 'All pending requests approved successfully', result);
+//   } catch (error) {
+//     handleError(error, res);
+//   }
+// };
 
 
 
 
-export const saveOptimizedRequests = async (req, res, next) => {
-  try {
-    // Validate input
-    if (!req.body?.optimizedData) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "optimizedData is required in request body" 
-      });
-    }
+// export const saveOptimizedRequests = async (req, res, next) => {
+//   try {
+//     // Validate input
+//     if (!req.body?.optimizedData) {
+//       return res.status(400).json({ 
+//         success: false, 
+//         message: "optimizedData is required in request body" 
+//       });
+//     }
 
-    const { optimizedData } = req.body;
+//     const { optimizedData } = req.body;
 
-    if (!Array.isArray(optimizedData)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "optimizedData must be an array" 
-      });
-    }
+//     if (!Array.isArray(optimizedData)) {
+//       return res.status(400).json({ 
+//         success: false, 
+//         message: "optimizedData must be an array" 
+//       });
+//     }
 
-    // Validate each item has required fields with proper formats
-    const validationErrors = [];
-    optimizedData.forEach((item, index) => {
-      if (!item.date || !item.demandTimeFrom || !item.demandTimeTo) {
-        validationErrors.push(`Item ${index} is missing required time fields`);
-      }
+//     // Validate each item has required fields with proper formats
+//     const validationErrors = [];
+//     optimizedData.forEach((item, index) => {
+//       if (!item.date || !item.demandTimeFrom || !item.demandTimeTo) {
+//         validationErrors.push(`Item ${index} is missing required time fields`);
+//       }
       
-      // Validate time format (HH:MM)
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (item.demandTimeFrom && !timeRegex.test(item.demandTimeFrom)) {
-        validationErrors.push(`Item ${index} has invalid demandTimeFrom format (HH:MM required)`);
-      }
-      if (item.demandTimeTo && !timeRegex.test(item.demandTimeTo)) {
-        validationErrors.push(`Item ${index} has invalid demandTimeTo format (HH:MM required)`);
-      }
+//       // Validate time format (HH:MM)
+//       const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+//       if (item.demandTimeFrom && !timeRegex.test(item.demandTimeFrom)) {
+//         validationErrors.push(`Item ${index} has invalid demandTimeFrom format (HH:MM required)`);
+//       }
+//       if (item.demandTimeTo && !timeRegex.test(item.demandTimeTo)) {
+//         validationErrors.push(`Item ${index} has invalid demandTimeTo format (HH:MM required)`);
+//       }
       
-      // Validate date format (YYYY-MM-DD)
-      if (item.date && !/^\d{4}-\d{2}-\d{2}$/.test(item.date)) {
-        validationErrors.push(`Item ${index} has invalid date format (YYYY-MM-DD required)`);
-      }
-    });
+//       // Validate date format (YYYY-MM-DD)
+//       if (item.date && !/^\d{4}-\d{2}-\d{2}$/.test(item.date)) {
+//         validationErrors.push(`Item ${index} has invalid date format (YYYY-MM-DD required)`);
+//       }
+//     });
 
-    if (validationErrors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation failed",
-        errors: validationErrors
-      });
-    }
+//     if (validationErrors.length > 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Validation failed",
+//         errors: validationErrors
+//       });
+//     }
 
-    const result = await requestService.saveOptimizedData(optimizedData);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Controller error:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to save optimized requests'
-    });
-  }
-    }
-};
+//     const result = await requestService.saveOptimizedData(optimizedData);
+//     res.status(200).json(result);
+//   } catch (error) {
+//     console.error("Controller error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || 'Failed to save optimized requests'
+//     });
+//   }
+//     }
+// };
 export const approveAllPendingRequests = async (req, res) => {
   try {
     const adminId = req.user.id; // Assuming user ID is available from auth middleware
