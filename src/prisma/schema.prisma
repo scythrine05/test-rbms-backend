@@ -120,19 +120,6 @@ model Optimize_Table{
   selectedSection         String
   selectedStream          String
 }
-model Optimize_Table{
-  id                      String   @id @default(uuid())
-  optimizeTimeFrom        DateTime
-  optimizeTimeTo          DateTime
-  date                    DateTime
-  missionBlock            String
-  otherAffectedLine       String
-  selectedDepartment      String
-  selectedDepo            String
-  selectedLine            String
-  selectedSection         String
-  selectedStream          String
-}
 
 model Otp {
   id        String   @id @default(uuid())
