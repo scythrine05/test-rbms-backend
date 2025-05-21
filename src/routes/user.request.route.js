@@ -7,10 +7,14 @@ const router = express.Router();
 // User routes
 router.post("/", authenticateToken, requestController.createRequest);
 router.get("/user", authenticateToken, requestController.getUserRequests);
+router.get("/user-data", authenticateToken, requestController.getUserRequestsData);
+router.post("/updatedStatus",authenticateToken,requestController.updatedSatus)
+router.post("/userResponse",authenticateToken,requestController.userResponse)
+router.post("/updateOptimizeTimes",authenticateToken,requestController.updateOptimizeTimes)
+
 router.get("/:id", authenticateToken, requestController.getRequest);
 router.put("/:id", authenticateToken, requestController.updateRequest);
 router.delete("/:id", authenticateToken, requestController.deleteRequest);
-
 // Manager routes
 router.get("/manager/requests", authenticateToken, managerMiddleware, requestController.getManagerRequests);
 router.put("/:id/status", authenticateToken, managerMiddleware, requestController.updateRequestStatus);
@@ -29,7 +33,27 @@ router.get("/admin/users-requests", authenticateToken, adminMiddleware, requestC
 router.put("/manager/accept/:id", authenticateToken, managerMiddleware, requestController.acceptRequestByManager);
 
 router.put("/admin/accept/:id", authenticateToken, adminMiddleware, requestController.acceptRequestByAdmin);
+router.put(
+  '/admin/approve-all-pending',
+  authenticateToken,
+  adminMiddleware,
+  requestController.approveAllPendingRequests
+);
+
+router.post(
+  "/admin/save-optimized-requests",
+  authenticateToken,
+  adminMiddleware,
+  requestController.saveOptimizedRequests
+);
+router.put(
+  "/admin/save-optimized-requests-status",
+  authenticateToken,
+  adminMiddleware,
+  requestController.saveOptimizedRequestsStatus
+);
 
 router.get("/admin/approved", authenticateToken, adminMiddleware, requestController.getUsersByAdminId);
+router.get("/admin/optimized",authenticateToken,adminMiddleware,requestController.getOptimizeData)
 
 export default router;
