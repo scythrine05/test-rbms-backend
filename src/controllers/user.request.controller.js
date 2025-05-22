@@ -96,7 +96,9 @@ export const getUserRequests = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const result = await requestService.getUserRequests(req.user.id, page, limit);
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+        const result = await requestService.getUserRequests(req.user.id, page, limit, startDate, endDate);
         return successResponse(res, 200, "User requests retrieved successfully", result);
     } catch (error) {
         handleError(error, res);
@@ -141,7 +143,9 @@ export const getManagerRequests = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const result = await requestService.getManagerRequests(req.user.id, page, limit);
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+        const result = await requestService.getManagerRequests(req.user.id, page, limit, startDate, endDate);
         return successResponse(res, 200, "Manager requests retrieved successfully", result);
     } catch (error) {
         handleError(error, res);
@@ -153,6 +157,8 @@ export const getOtherRequests = async (req, res) => {
         const { selectedDepo } = req.params;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
 
         if (!req.user || !req.user.email) {
             return res.status(400).json({
@@ -165,6 +171,8 @@ export const getOtherRequests = async (req, res) => {
             page,
             limit,
             req.user.email,
+            startDate,
+            endDate
         );
         return successResponse(res, 200, "Other requests retrieved successfully", result);
     } catch (error) {
@@ -177,6 +185,8 @@ export const getTrdRequests = async (req, res) => {
         const { selectedDepo } = req.params;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
 
         if (!req.user || !req.user.email) {
             return res.status(400).json({
@@ -189,6 +199,8 @@ export const getTrdRequests = async (req, res) => {
             page,
             limit,
             req.user.email,
+            startDate,
+            endDate
         );
         return successResponse(res, 200, "TRD requests retrieved successfully", result);
     } catch (error) {
@@ -226,11 +238,15 @@ export const getAdminUsersRequests = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
         const result = await requestService.getAdminPendingRequests(
             req.user.id,
             req.user.role,
             page,
             limit,
+            startDate,
+            endDate
         );
         return successResponse(res, 200, "Manager's users requests retrieved successfully", result);
     } catch (error) {

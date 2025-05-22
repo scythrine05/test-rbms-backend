@@ -193,16 +193,27 @@ export const updateRequestStatus = async (id, status, managerId, ManagerResponse
 
 
 
-export const getUserRequests = async (userId, page = 1, limit = 10) => {
+export const getUserRequests = async (userId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
+    
+    const whereClause = {
+        userId,
+        ...(startDate && endDate && {
+            date: {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            }
+        })
+    };
+
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
-            where: { userId },
+            where: whereClause,
             orderBy: { createdAt: "desc" },
             skip,
             take: limit,
         }),
-        prisma.request.count({ where: { userId } }),
+        prisma.request.count({ where: whereClause }),
     ]);
 
     return {
@@ -272,11 +283,22 @@ export const getUserRequestsData = async (
 //         totalPages: Math.ceil(total / limit),
 //     };
 // };
-export const getManagerRequests = async (managerId, page = 1, limit = 10) => {
+export const getManagerRequests = async (managerId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
+    
+    const whereClause = {
+        managerId,
+        ...(startDate && endDate && {
+            date: {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            }
+        })
+    };
+
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
-            where: { managerId },
+            where: whereClause,
             include: {
                 user: {
                     select: {
@@ -299,7 +321,7 @@ export const getManagerRequests = async (managerId, page = 1, limit = 10) => {
             skip,
             take: limit,
         }),
-        prisma.request.count({ where: { managerId } }),
+        prisma.request.count({ where: whereClause }),
     ]);
 
     return {
@@ -310,7 +332,7 @@ export const getManagerRequests = async (managerId, page = 1, limit = 10) => {
     };
 };
 
-export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userEmail) => {
+export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userEmail, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
     // Build the where clause
@@ -325,7 +347,13 @@ export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userE
                 trdActionsNeeded: true, 
                 trdDisconnectionAssignTo: userEmail,
             }
-        ]
+        ],
+        ...(startDate && endDate && {
+            date: {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            }
+        })
     };
 
     const [requests, total] = await Promise.all([
@@ -690,7 +718,7 @@ export const getManagerUsersRequests = async (
 //         totalPages: Math.ceil(total / limit)
 //     };
 // };
-export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => {
+export const getAdminPendingRequests = async (adminId, role, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
     const fetchChildIds = async (parentIds, childRole) => {
@@ -714,16 +742,22 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
     const juniorIds = await fetchChildIds(seniorIds, "JUNIOR_OFFICER");
     const userIds = await fetchChildIds(juniorIds, "USER");
 
-    // 2) Fetch & paginate requests where:
-    //      • userId ∈ userIds
-    //      • managerAcceptance = true
-    //      • adminAcceptance = "PENDING"
+    // 2) Build where clause for requests
+    const whereClause = {
+        userId: { in: userIds },
+        managerAcceptance: true,
+        ...(startDate && endDate && {
+            date: {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            }
+        })
+    };
+
+    // 3) Fetch & paginate requests
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
-            where: {
-                userId: { in: userIds },
-                managerAcceptance: true,
-            },
+            where: whereClause,
             include: {
                 user: {
                     select: {
@@ -737,13 +771,11 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
                 },
             },
             orderBy: { createdAt: "desc" },
+            skip,
+            take: limit,
         }),
         prisma.request.count({
-            where: {
-                userId: { in: userIds },
-                managerAcceptance: true,
-                adminAcceptance: true,
-            },
+            where: whereClause,
         }),
     ]);
 
@@ -1020,19 +1052,21 @@ export const saveOptimizedData = async (optimizedData) => {
     } 
 };
 
-export const getTrdRequests = async (selectedDepo, page = 1, limit = 10, userEmail) => {
+export const getTrdRequests = async (selectedDepo, page = 1, limit = 10, userEmail, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
     // Build the where clause
     const whereClause = {
         trdActionsNeeded: true,
         selectedDepo: selectedDepo,
+        ...(userEmail && { trdDisconnectionAssignTo: userEmail }),
+        ...(startDate && endDate && {
+            date: {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            }
+        })
     };
-
-    // Only add the email filter if it's provided
-    if (userEmail) {
-        whereClause.trdDisconnectionAssignTo = userEmail;
-    }
 
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
