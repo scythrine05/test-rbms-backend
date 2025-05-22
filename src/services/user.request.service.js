@@ -73,6 +73,74 @@ export const createRequest = async (data, userId) => {
     });
 };
 
+
+export const updatedSatus = async (requestId, status,reason) => {
+    const updatedRequest = await prisma.request.update({
+        where: { id: requestId },
+        data: { 
+            userStatus: status,
+            reasonForReject:reason
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
+                }
+            }
+        }
+    });
+    
+    if (!updatedRequest) throw new Error("Request not found or update failed");
+    return updatedRequest;
+};
+export const userResponse = async (requestId, userResponse,reason) => {
+    const updatedRequest = await prisma.request.update({
+        where: { id: requestId },
+        data: { 
+            userResponse:userResponse,
+            availedResponse:reason
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
+                }
+            }
+        }
+    });
+    
+    if (!updatedRequest) throw new Error("Request not found or update failed");
+    return updatedRequest;
+};
+
+
+export const updateOptimizeTimes = async (requestId, optimizeTimeFrom,optimizeTimeTo) => {
+    const updatedRequest = await prisma.request.update({
+        where: { id: requestId },
+        data: { 
+            optimizeTimeFrom:optimizeTimeFrom,
+            optimizeTimeTo:optimizeTimeTo,
+            isSanctioned:true
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
+                }
+            }
+        }
+    });
+    
+    if (!updatedRequest) throw new Error("Request not found or update failed");
+    return updatedRequest;
+};
+
 export const getRequestById = async (id) => {
     const request = await prisma.request.findUnique({
         where: { id },
@@ -144,26 +212,66 @@ export const getUserRequests = async (userId, page = 1, limit = 10) => {
         totalPages: Math.ceil(total / limit),
     };
 };
-export const getUserRequestsData = async (userId, page = 1, limit = 30) => {
-    const skip = (page - 1) * limit;
-    const [requests, total] = await Promise.all([
-        prisma.request.findMany({
-            where: { userId,optimizeStatus:true },
-            
-            orderBy: { createdAt: "desc" },
-            skip,
-            take: limit,
-        }),
-        prisma.request.count({ where: { userId } }),
-    ]);
 
-    return {
-        requests,
-        total,
-        page,
-        totalPages: Math.ceil(total / limit),
-    };
+
+export const getUserRequestsData = async (
+  userId,
+  page = 1,
+  limit = 30,
+  startDate,
+  endDate
+) => {
+  const skip = (page - 1) * limit;
+
+  const whereClause = {
+    userId,
+    optimizeStatus: true,
+    ...(startDate && endDate && {
+      createdAt: {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      },
+    }),
+  };
+
+  const [requests, total] = await Promise.all([
+    prisma.request.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.request.count({ where: whereClause }),
+  ]);
+
+  return {
+    requests,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
 };
+
+// export const getUserRequestsData = async (userId, page = 1, limit = 30,startDate,endDate) => {
+//     const skip = (page - 1) * limit;
+//     const [requests, total] = await Promise.all([
+//         prisma.request.findMany({
+//             where: { userId,optimizeStatus:true },
+            
+//             orderBy: { createdAt: "desc" },
+//             skip,
+//             take: limit,
+//         }),
+//         prisma.request.count({ where: { userId } }),
+//     ]);
+
+//     return {
+//         requests,
+//         total,
+//         page,
+//         totalPages: Math.ceil(total / limit),
+//     };
+// };
 export const getManagerRequests = async (managerId, page = 1, limit = 10) => {
     const skip = (page - 1) * limit;
     const [requests, total] = await Promise.all([
@@ -250,88 +358,208 @@ export const updateOtherRequest = async (id, acceptance, disconnectionRequestRej
         },
     });
 };
-
-export const getManagerUsersRequests = async (managerId, role, page = 1, limit = 10) => {
+export const getManagerUsersRequests = async (
+  managerId,
+  role,
+  page = 1,
+  limit = 10,
+  startDate,
+  endDate,
+  status
+) => {
+  try {
+    // Validate inputs
+    if (page < 1) throw new Error('Page must be at least 1');
+    if (limit < 1) throw new Error('Limit must be at least 1');
+    
     const skip = (page - 1) * limit;
 
-    // helper to fetch direct reports of a given role
-    const fetchIds = async (ids, targetRole, field = "managerId") => {
-        if (ids.length === 0) return [];
-        const records = await prisma.user.findMany({
-            where: { [field]: { in: ids }, role: targetRole },
-            select: { id: true },
-        });
-        return records.map((r) => r.id);
+    // Helper to fetch user IDs with a single query
+    const getUserIds = async ({ managerId: managerIdCondition, role: targetRole, field = 'managerId' }) => {
+      const where = { 
+        [field]: Array.isArray(managerIdCondition) 
+          ? { in: managerIdCondition } 
+          : managerIdCondition
+      };
+      if (targetRole) where.role = targetRole;
+      
+      const users = await prisma.user.findMany({
+        where,
+        select: { id: true }
+      });
+      
+      return users.map(user => user.id);
     };
 
-    // 1⃣ Build the list of USER-IDs under this manager, by role:
+    // 1. Build the list of USER-IDs under this manager hierarchy
     let userIds = [];
 
-    if (role === "BRANCH_OFFICER") {
-        const seniorIds = await prisma.user
-            .findMany({
-                where: { managerId, role: "SENIOR_OFFICER" },
-                select: { id: true },
-            })
-            .then((recs) => recs.map((r) => r.id));
-        console.log(seniorIds);
-        const juniorIds = await fetchIds(seniorIds, "JUNIOR_OFFICER");
-        console.log(juniorIds);
-        userIds = await fetchIds(juniorIds, "USER");
-    } else if (role === "SENIOR_OFFICER") {
-        // Senior → Juniors → Users
-        const juniorIds = await prisma.user
-            .findMany({
-                where: { managerId, role: "JUNIOR_OFFICER" },
-                select: { id: true },
-            })
-            .then((recs) => recs.map((r) => r.id));
+    switch (role) {
+      case 'BRANCH_OFFICER':
+        const seniorIds = await getUserIds({ managerId, role: 'SENIOR_OFFICER' });
+        const juniorIds = await getUserIds({ managerId: seniorIds, role: 'JUNIOR_OFFICER' });
+        userIds = await getUserIds({ managerId: juniorIds, role: 'USER' });
+        break;
 
-        userIds = await fetchIds(juniorIds, "USER");
-    } else if (role === "JUNIOR_OFFICER") {
-        // Junior → Users
-        userIds = await prisma.user
-            .findMany({
-                where: { managerId, role: "USER" },
-                select: { id: true },
-            })
-            .then((recs) => recs.map((r) => r.id));
-    } else {
-        throw new Error(`Role ${role} is not supported for this endpoint.`);
+      case 'SENIOR_OFFICER':
+        const juniorOfficerIds = await getUserIds({ managerId, role: 'JUNIOR_OFFICER' });
+        userIds = await getUserIds({ managerId: juniorOfficerIds, role: 'USER' });
+        break;
+
+      case 'JUNIOR_OFFICER':
+        userIds = await getUserIds({ managerId, role: 'USER' });
+        break;
+
+      default:
+        throw new Error(`Role ${role} is not supported for this endpoint`);
     }
 
-    // 2⃣ Query & paginate Requests for those USER-IDs
+    // Early return if no users found
+    if (userIds.length === 0) {
+      return {
+        requests: [],
+        total: 0,
+        page,
+        totalPages: 0
+      };
+    }
+
+    // 2. Build the where clause for requests
+    const where = { userId: { in: userIds } };
+
+    // Date filtering
+    if (startDate && endDate) {
+      where.date = {
+        gte: new Date(startDate),
+        lte: new Date(endDate)
+      };
+    } else if (startDate) {
+      where.date = { gte: new Date(startDate) };
+    } else if (endDate) {
+      where.date = { lte: new Date(endDate) };
+    }
+
+    // Status filtering
+    if (status && status !== 'ALL') {
+      where.status = status;
+    }
+
+    // 3. Query requests with pagination
     const [requests, total] = await Promise.all([
-        prisma.request.findMany({
-            where: { userId: { in: userIds } },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        role: true,
-                        depot: true,
-                        department: true,
-                    },
-                },
+      prisma.request.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              depot: true,
+              department: true,
             },
-            orderBy: { createdAt: "desc" },
-            skip,
-            take: limit,
-        }),
-        prisma.request.count({
-            where: { userId: { in: userIds } },
-        }),
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.request.count({ where }),
     ]);
 
     return {
-        requests,
-        total,
-        page,
-        totalPages: Math.ceil(total / limit),
+      requests,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
     };
+
+  } catch (error) {
+    console.error('Error in getManagerUsersRequests:', error);
+    throw error;
+  }
 };
+// export const getManagerUsersRequests = async (managerId, role, page = 1, limit = 10) => {
+//     const skip = (page - 1) * limit;
+
+//     // helper to fetch direct reports of a given role
+//     const fetchIds = async (ids, targetRole, field = "managerId") => {
+//         if (ids.length === 0) return [];
+//         const records = await prisma.user.findMany({
+//             where: { [field]: { in: ids }, role: targetRole },
+//             select: { id: true },
+//         });
+//         return records.map((r) => r.id);
+//     };
+
+//     // 1⃣ Build the list of USER-IDs under this manager, by role:
+//     let userIds = [];
+
+//     if (role === "BRANCH_OFFICER") {
+//         const seniorIds = await prisma.user
+//             .findMany({
+//                 where: { managerId, role: "SENIOR_OFFICER" },
+//                 select: { id: true },
+//             })
+//             .then((recs) => recs.map((r) => r.id));
+//         console.log(seniorIds);
+//         const juniorIds = await fetchIds(seniorIds, "JUNIOR_OFFICER");
+//         console.log(juniorIds);
+//         userIds = await fetchIds(juniorIds, "USER");
+//     } else if (role === "SENIOR_OFFICER") {
+//         // Senior → Juniors → Users
+//         const juniorIds = await prisma.user
+//             .findMany({
+//                 where: { managerId, role: "JUNIOR_OFFICER" },
+//                 select: { id: true },
+//             })
+//             .then((recs) => recs.map((r) => r.id));
+
+//         userIds = await fetchIds(juniorIds, "USER");
+//     } else if (role === "JUNIOR_OFFICER") {
+//         // Junior → Users
+//         userIds = await prisma.user
+//             .findMany({
+//                 where: { managerId, role: "USER" },
+//                 select: { id: true },
+//             })
+//             .then((recs) => recs.map((r) => r.id));
+//     } else {
+//         throw new Error(`Role ${role} is not supported for this endpoint.`);
+//     }
+
+//     // 2⃣ Query & paginate Requests for those USER-IDs
+//     const [requests, total] = await Promise.all([
+//         prisma.request.findMany({
+//             where: { userId: { in: userIds } },
+//             include: {
+//                 user: {
+//                     select: {
+//                         id: true,
+//                         name: true,
+//                         email: true,
+//                         role: true,
+//                         depot: true,
+//                         department: true,
+//                     },
+//                 },
+//             },
+//             orderBy: { createdAt: "desc" },
+//             skip,
+//             take: limit,
+//         }),
+//         prisma.request.count({
+//             where: { userId: { in: userIds } },
+//         }),
+//     ]);
+
+//     return {
+//         requests,
+//         total,
+//         page,
+//         totalPages: Math.ceil(total / limit),
+//     };
+// };
 
 // export const getManagerUsersRequests = async (managerId, role, page = 1, limit = 10) => {
 //     let finalManagerId = managerId;
@@ -545,7 +773,25 @@ export const getAdminPendingRequests = async (adminId, page = 1, limit = 10) => 
 //     });
 // };
 
-export const acceptRequestByManager = async (requestId, managerId, isAccept,remark) => {
+// export const acceptRequestByManager = async (requestId, managerId, isAccept) => {
+//     const request = await prisma.request.findUnique({
+//         where: { id: requestId },
+//     });
+
+//     if (!request) {
+//         throw new Error("Request not found");
+//     }
+
+//     return await prisma.request.update({
+//         where: { id: requestId },
+//         data: {
+//             managerAcceptance: isAccept,
+//             managerAcceptanceId: managerId,
+//             status: isAccept ? "APPROVED" : "REJECTED",  // Update status based on isAccept
+//         },
+//     });
+// };
+export const acceptRequestByManager = async (requestId, managerId, isAccept, remark) => {
     const request = await prisma.request.findUnique({
         where: { id: requestId },
     });
@@ -559,8 +805,8 @@ export const acceptRequestByManager = async (requestId, managerId, isAccept,rema
         data: {
             managerAcceptance: isAccept,
             managerAcceptanceId: managerId,
-            status: isAccept ? "APPROVED" : "REJECTED",  // Update status based on isAccept
-            remarkByManager: remark || null,
+            status: isAccept ? "APPROVED" : "REJECTED",
+            remarkByManager: remark || null, // Store the rejection reason
         },
     });
 };
@@ -595,7 +841,7 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
         adminAcceptance: true,
         adminRequestStatus:"ACCEPTED",
         managerAcceptance: true,
-        // adminAcceptanceId: adminId,
+        adminAcceptanceId: adminId,
         ...(startDateTime &&
             endDateTime && {
                 date: {
@@ -827,6 +1073,7 @@ export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, 
         adminAcceptance: true,
         adminRequestStatus: "ACCEPTED",
         managerAcceptance: true,
+        adminAcceptanceId: adminId,
         ...(startDateTime && endDateTime && {
             date: { gte: startDateTime, lte: endDateTime }
         })
