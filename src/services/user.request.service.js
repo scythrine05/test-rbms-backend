@@ -271,7 +271,7 @@ export const getUserRequestsData = async (
     userId,
     optimizeStatus: true,
     ...(startDate && endDate && {
-      createdAt: {
+      date: {
         gte: new Date(startDate),
         lte: new Date(endDate),
       },
@@ -281,7 +281,7 @@ export const getUserRequestsData = async (
   const [requests, total] = await Promise.all([
     prisma.request.findMany({
       where: whereClause,
-      orderBy: { createdAt: "desc" },
+      orderBy: { date: "desc" },
       skip,
       take: limit,
     }),
