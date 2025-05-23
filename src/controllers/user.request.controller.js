@@ -42,6 +42,68 @@ export const updateOptimizeTimes=async(req,res)=>{
     }
 }
 
+// In your controller file
+export const updateSanctionStatus = async (req, res) => {
+  try {
+    const { requests } = req.body; // Destructure the requests array
+    
+    if (!Array.isArray(requests)) {
+      return res.status(400).json({ 
+        message: 'Invalid request format. Expected { requests: [...] }' 
+      });
+    }
+
+    // Validate each request
+    for (const request of requests) {
+      if (!request.id || !request.optimizeTimeFrom || !request.optimizeTimeTo) {
+        return res.status(400).json({
+          message: 'Each request must contain id, optimizeTimeFrom, and optimizeTimeTo'
+        });
+      }
+    }
+
+    const result = await requestService.updateSanctionStatus(requests);
+    return res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error in updateSanctionStatus:', error);
+    return res.status(500).json({
+      message: 'Failed to update sanction status',
+      error: error.message
+    });
+  }
+}
+
+
+
+export const deleteOptimizeDataRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Delete the request
+    const deletedRequest = await requestService.deleteOptimizeDataRequest(id);
+
+    return successResponse(res, 200, {
+      message: "Request deleted successfully",
+      data: deletedRequest
+    });
+
+  } catch (error) {
+    console.error("Error deleting request:", error);
+    
+
+    return errorResponse(res, 500, {
+      message: "Failed to delete request",
+      error: error.message
+    });
+  }
+};
+
+
+
+
 export const getRequest = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
