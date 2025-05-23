@@ -119,27 +119,58 @@ export const userResponse = async (requestId, userResponse,reason) => {
 
 
 export const updateOptimizeTimes = async (requestId, optimizeTimeFrom,optimizeTimeTo) => {
-    const updatedRequest = await prisma.request.update({
+    const updatedRequest = await prisma.Optimize_Table.update({
         where: { id: requestId },
         data: { 
             optimizeTimeFrom:optimizeTimeFrom,
             optimizeTimeTo:optimizeTimeTo,
-            isSanctioned:true
         },
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true
-                }
-            }
-        }
     });
     
     if (!updatedRequest) throw new Error("Request not found or update failed");
     return updatedRequest;
 };
+
+
+
+// In your service file
+export const updateSanctionStatus = async (requests) => {
+  try {
+    return await prisma.$transaction(
+      requests.map(request => 
+        prisma.Request.update({
+          where: { id: request.id },
+          data: {
+            isSanctioned: true,
+            
+              
+                sanctionedTimeFrom: request.optimizeTimeFrom,
+                sanctionedTimeTo: request.optimizeTimeTo,
+              
+            
+          },
+        })
+      )
+    );
+  } catch (error) {
+    console.error('Database error in updateSanctionStatus:', error);
+    throw new Error('Failed to update records in database');
+  }
+};
+
+
+export const deleteOptimizeDataRequest = async (requestId) => {
+  try {
+    return await prisma.request.delete({
+      where: { id: requestId }
+    });
+  } catch (error) {
+    console.error("Database error in deleteOptimizeDataRequest:", error);
+    throw error; // Let the controller handle it
+  }
+};
+
+
 
 export const getRequestById = async (id) => {
     const request = await prisma.request.findUnique({
@@ -190,6 +221,8 @@ export const updateRequestStatus = async (id, status, managerId, ManagerResponse
         },
     });
 };
+
+
 
 
 

@@ -102,6 +102,8 @@ model Request {
   optimizeStatus               Boolean    @default(false)
   optimizeTimeFrom             DateTime?
   optimizeTimeTo               DateTime?
+  sanctionedTimeFrom           DateTime?
+  sanctionedTimeTo             DateTime?
   @@index([userId])
   @@index([managerAcceptanceId])
   @@index([adminAcceptanceId])

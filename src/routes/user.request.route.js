@@ -12,6 +12,14 @@ router.post("/updatedStatus",authenticateToken,requestController.updatedSatus)
 router.post("/userResponse",authenticateToken,requestController.userResponse)
 router.post("/updateOptimizeTimes",authenticateToken,requestController.updateOptimizeTimes)
 
+router.post("/updateSanctionStatus", authenticateToken, requestController.updateSanctionStatus);
+router.delete(
+  "/delet-optimiseData/:id",
+  authenticateToken,
+  requestController.deleteOptimizeDataRequest
+);
+
+
 router.get("/:id", authenticateToken, requestController.getRequest);
 router.put("/:id", authenticateToken, requestController.updateRequest);
 router.delete("/:id", authenticateToken, requestController.deleteRequest);
