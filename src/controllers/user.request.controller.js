@@ -199,6 +199,27 @@ export const getUserRequestsData = async (req, res) => {
     }
 };
 
+export const getManagerData = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 30;
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate ;
+
+        const result = await requestService.getManagerData(
+            req.user.id,
+            page,
+            limit,
+            startDate,
+            endDate
+        );
+
+        return successResponse(res, 200, "User requests retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
 
 
 export const getManagerRequests = async (req, res) => {

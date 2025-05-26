@@ -8,6 +8,7 @@ const router = express.Router();
 router.post("/", authenticateToken, requestController.createRequest);
 router.get("/user", authenticateToken, requestController.getUserRequests);
 router.get("/user-data", authenticateToken, requestController.getUserRequestsData);
+router.get("/manager-data",authenticateToken,requestController.getManagerData)
 router.post("/updatedStatus",authenticateToken,requestController.updatedSatus)
 router.post("/userResponse",authenticateToken,requestController.userResponse)
 router.post("/updateOptimizeTimes",authenticateToken,requestController.updateOptimizeTimes)

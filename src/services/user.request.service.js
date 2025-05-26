@@ -296,26 +296,43 @@ export const getUserRequestsData = async (
   };
 };
 
-// export const getUserRequestsData = async (userId, page = 1, limit = 30,startDate,endDate) => {
-//     const skip = (page - 1) * limit;
-//     const [requests, total] = await Promise.all([
-//         prisma.request.findMany({
-//             where: { userId,optimizeStatus:true },
-            
-//             orderBy: { createdAt: "desc" },
-//             skip,
-//             take: limit,
-//         }),
-//         prisma.request.count({ where: { userId } }),
-//     ]);
+export const getManagerData = async (
+  userId,
+  page = 1,
+  limit = 30,
+  startDate,
+  endDate
+) => {
+  const skip = (page - 1) * limit;
 
-//     return {
-//         requests,
-//         total,
-//         page,
-//         totalPages: Math.ceil(total / limit),
-//     };
-// };
+  const whereClause = {
+    userId,
+    optimizeStatus: true,
+    ...(startDate && endDate && {
+      date: {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      },
+    }),
+  };
+
+  const [requests, total] = await Promise.all([
+    prisma.request.findMany({
+      where: whereClause,
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.request.count({ where: whereClause }),
+  ]);
+
+  return {
+    requests,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+};
 export const getManagerRequests = async (managerId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
     
