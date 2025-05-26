@@ -63,5 +63,11 @@ router.put(
 
 router.get("/admin/approved", authenticateToken, adminMiddleware, requestController.getUsersByAdminId);
 router.get("/admin/optimized",authenticateToken,adminMiddleware,requestController.getOptimizeData)
+router.put(
+  "/manager/batch-accept",
+  authenticateToken,
+  managerMiddleware,
+  requestController.batchAcceptRequests
+);
 
 export default router;

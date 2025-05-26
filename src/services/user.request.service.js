@@ -1201,3 +1201,18 @@ export const saveOptimizedRequestsStatus = async (requestIds) => {
 
 
 
+export const batchAcceptRequests = async (ids) => {
+  const result = await prisma.request.updateMany({
+    where: {
+      id: {
+        in: ids,
+      },
+      status: "PENDING",
+    },
+    data: {
+      status: "APPROVED",
+    },
+  });
+
+  return result.count; // Prisma returns `{ count: number }`
+};

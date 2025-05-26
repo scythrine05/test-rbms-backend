@@ -630,3 +630,21 @@ export const saveOptimizedRequestsStatus = async (req, res) => {
 };
 
 
+export const batchAcceptRequests = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "Invalid or empty request IDs" });
+    }
+
+    const updatedCount = await requestService.batchAcceptRequests(ids);
+
+    return res.status(200).json({
+      message: `Successfully accepted ${updatedCount} requests`,
+    });
+  } catch (error) {
+    console.error("Error in controller:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
