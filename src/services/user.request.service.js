@@ -118,20 +118,56 @@ export const userResponse = async (requestId, userResponse, reason) => {
 };
 
 
-export const updateOptimizeTimes = async (requestId, optimizeTimeFrom, optimizeTimeTo) => {
-    const updatedRequest = await prisma.Optimize_Table.update({
-        where: { id: requestId },
-        data: {
-            optimizeTimeFrom: optimizeTimeFrom,
-            optimizeTimeTo: optimizeTimeTo,
-        },
-    });
 
-    if (!updatedRequest) throw new Error("Request not found or update failed");
-    return updatedRequest;
+export const updateOptimizeTimes = async (
+  requestId,
+  optimizeTimeFrom,
+  optimizeTimeTo,
+  date
+) => {
+  const updatedRequest = await prisma.Optimize_Table.update({
+    where: { id: requestId },
+    data: {
+      optimizeTimeFrom,
+      optimizeTimeTo,
+      date,
+    },
+  });
+
+  if (!updatedRequest)
+    throw new Error("Request not found or update failed");
+  return updatedRequest;
+
 };
 
 
+export const editRequest = async (id, updateData) => {
+  // Convert to Prisma-compatible format
+  const prismaUpdateData = {};
+  
+  if (updateData.optimizeTimeFrom !== undefined) {
+    prismaUpdateData.optimizeTimeFrom = updateData.optimizeTimeFrom;
+  }
+  
+  if (updateData.optimizeTimeTo !== undefined) {
+    prismaUpdateData.optimizeTimeTo = updateData.optimizeTimeTo;
+  }
+  
+  if (updateData.date !== undefined) {
+    prismaUpdateData.date = updateData.date;
+  }
+
+  const updatedRequest = await prisma.request.update({
+    where: { id },
+    data: prismaUpdateData,
+  });
+  
+  if (!updatedRequest) {
+    throw new Error("Request not found or update failed");
+  }
+  
+  return updatedRequest;
+};
 
 // In your service file
 export const updateSanctionStatus = async (requests) => {
@@ -296,26 +332,43 @@ export const getUserRequestsData = async (
     };
 };
 
-// export const getUserRequestsData = async (userId, page = 1, limit = 30,startDate,endDate) => {
-//     const skip = (page - 1) * limit;
-//     const [requests, total] = await Promise.all([
-//         prisma.request.findMany({
-//             where: { userId,optimizeStatus:true },
 
-//             orderBy: { createdAt: "desc" },
-//             skip,
-//             take: limit,
-//         }),
-//         prisma.request.count({ where: { userId } }),
-//     ]);
+export const getManagerData = async (
+  userId,
+  page = 1,
+  limit = 30,
+  startDate,
+  endDate
+) => {
+  const skip = (page - 1) * limit;
+  const whereClause = {
+    userId,
+    optimizeStatus: true,
+    ...(startDate && endDate && {
+      date: {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      },
+    }),
+  };
 
-//     return {
-//         requests,
-//         total,
-//         page,
-//         totalPages: Math.ceil(total / limit),
-//     };
-// };
+  const [requests, total] = await Promise.all([
+    prisma.request.findMany({
+      where: whereClause,
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.request.count({ where: whereClause }),
+  ]);
+
+  return {
+    requests,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+};
 export const getManagerRequests = async (managerId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
@@ -1202,3 +1255,18 @@ export const saveOptimizedRequestsStatus = async (requestIds) => {
 
 
 
+export const batchAcceptRequests = async (ids) => {
+  const result = await prisma.request.updateMany({
+    where: {
+      id: {
+        in: ids,
+      },
+      status: "PENDING",
+    },
+    data: {
+      status: "APPROVED",
+    },
+  });
+
+  return result.count; // Prisma returns `{ count: number }`
+};
