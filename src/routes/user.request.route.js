@@ -12,6 +12,7 @@ router.get("/manager-data",authenticateToken,requestController.getManagerData)
 router.post("/updatedStatus",authenticateToken,requestController.updatedSatus)
 router.post("/userResponse",authenticateToken,requestController.userResponse)
 router.post("/updateOptimizeTimes",authenticateToken,requestController.updateOptimizeTimes)
+router.post("/editRequest",authenticateToken,requestController.editRequest)
 
 router.post("/updateSanctionStatus", authenticateToken, requestController.updateSanctionStatus);
 router.delete(
