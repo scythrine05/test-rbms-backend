@@ -17,8 +17,9 @@ const formatUserData = (user) => ({
 // Login service
 export const login = async (email, password) => {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) throw new Error("Invalid credentials");
+    if (!user) throw new Error("No user found");
     const isPasswordValid = await comparePassword(password, user.password);
+    console.log(password, user.password);
     if (!isPasswordValid) throw new Error("Invalid credentials");
     const access_token = await tokenService.generateAccessToken(user.id);
     const refresh_token = await tokenService.generateRefreshToken(user.id);
