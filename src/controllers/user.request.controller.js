@@ -71,19 +71,17 @@ export const updateOptimizeTimes = async (req, res) => {
 
 export const editRequest = async (req, res) => {
   try {
-    const { requestId, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
-    const request = await requestService.editRequest(
-      requestId,
-      optimizeTimeFrom,
-      optimizeTimeTo,
-      date,
-    );
-    return successResponse(res, 201, "Request updated successfully", request);
+    const { id, updateData } = req.body;
+    const updatedRequest = await requestService.editRequest(id, updateData);
+
+    return res.json({ 
+      success: true, 
+      data: updatedRequest 
+    });
   } catch (error) {
     handleError(error, res);
   }
 };
-
     const updatedRequest = await requestService.editRequest(id, updateData);
     
     return res.json({ 
