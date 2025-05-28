@@ -69,19 +69,6 @@ export const updateOptimizeTimes = async (req, res) => {
 //       updateData.date = new Date(date);
 //     }
 
-export const editRequest = async (req, res) => {
-  try {
-    const { id, updateData } = req.body;
-    const updatedRequest = await requestService.editRequest(id, updateData);
-
-    return res.json({ 
-      success: true, 
-      data: updatedRequest 
-    });
-  } catch (error) {
-    handleError(error, res);
-  }
-};
 //     const updatedRequest = await requestService.editRequest(id, updateData);
     
 //     return res.json({ 
@@ -97,6 +84,20 @@ export const editRequest = async (req, res) => {
 //     });
 //   }
 // };
+
+export const editRequest = async (req, res) => {
+  try {
+    const { id, updateData } = req.body;
+    const updatedRequest = await requestService.editRequest(id, updateData);
+
+    return res.json({ 
+      success: true, 
+      data: updatedRequest 
+    });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
 
 // In your controller file
 export const updateSanctionStatus = async (req, res) => {
