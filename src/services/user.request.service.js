@@ -156,6 +156,17 @@ export const updateOptimizeTimes = async (
 //   if (updateData.date !== undefined) {
 //     prismaUpdateData.date = updateData.date;
 //   }
+//   const updatedRequest = await prisma.request.update({
+//     where: { id },
+//     data: prismaUpdateData,
+//   });
+  
+//   if (!updatedRequest) {
+//     throw new Error("Request not found or update failed");
+//   }
+  
+//   return updatedRequest;
+// };
 
 export const editRequest = async (
   requestId,
@@ -178,17 +189,7 @@ export const editRequest = async (
 
 };
 
-  const updatedRequest = await prisma.request.update({
-    where: { id },
-    data: prismaUpdateData,
-  });
-  
-  if (!updatedRequest) {
-    throw new Error("Request not found or update failed");
-  }
-  
-  return updatedRequest;
-};
+
 
 // In your service file
 export const updateSanctionStatus = async (requests) => {
