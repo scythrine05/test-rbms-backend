@@ -1092,8 +1092,8 @@ export const saveOptimizedData = async (optimizedData) => {
         const created = await prisma.optimize_Table.createMany({
             data: optimizedData.map(request => {
                 // Combine date with time for proper DateTime format
-                const timeFrom = new Date(`${request.date}T${request.demandTimeFrom}:00`);
-                const timeTo = new Date(`${request.date}T${request.demandTimeTo}:00`);
+                const timeFrom = new Date(`${request.date}T${request.optimisedTimeFrom}:00`);
+                const timeTo = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
 
                 return {
                     id: request.id,
@@ -1116,8 +1116,8 @@ export const saveOptimizedData = async (optimizedData) => {
 
         // Then update the original requests with the optimized times
         await Promise.all(optimizedData.map(async (request) => {
-            const timeFrom = new Date(`${request.date}T${request.demandTimeFrom}:00`);
-            const timeTo = new Date(`${request.date}T${request.demandTimeTo}:00`);
+            const timeFrom = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
+            const timeTo = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
 
             await prisma.Request.update({
                 where: { id: request.id },
