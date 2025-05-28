@@ -87,12 +87,23 @@ export const updateOptimizeTimes = async (req, res) => {
 
 export const editRequest = async (req, res) => {
   try {
-    const { id, updateData } = req.body;
-    const updatedRequest = await requestService.editRequest(id, updateData);
+    const {
+      requestId,
+      optimizeTimeFrom,
+      optimizeTimeTo,
+      date,
+    } = req.body;
 
-    return res.json({ 
-      success: true, 
-      data: updatedRequest 
+    const updatedRequest = await requestService.editRequest(
+      requestId,
+      optimizeTimeFrom,
+      optimizeTimeTo,
+      date
+    );
+
+    return res.json({
+      success: true,
+      data: updatedRequest,
     });
   } catch (error) {
     handleError(error, res);
