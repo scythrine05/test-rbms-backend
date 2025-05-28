@@ -1116,7 +1116,7 @@ export const saveOptimizedData = async (optimizedData) => {
 
         // Then update the original requests with the optimized times
         await Promise.all(optimizedData.map(async (request) => {
-            const timeFrom = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
+            const timeFrom = new Date(`${request.date}T${request.optimisedTimeFrom}:00`);
             const timeTo = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
 
             await prisma.Request.update({
