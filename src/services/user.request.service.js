@@ -131,6 +131,7 @@ export const updateOptimizeTimes = async (
       optimizeTimeFrom,
       optimizeTimeTo,
       date,
+      isEdited :true
     },
   });
 
