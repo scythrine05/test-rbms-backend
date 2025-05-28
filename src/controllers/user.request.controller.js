@@ -50,24 +50,39 @@ export const updateOptimizeTimes = async (req, res) => {
 
 // In your editRequest controller
 
+// export const editRequest = async (req, res) => {
+//   try {
+//     const { id, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
+
+//     // Prepare update data in the correct format for Prisma
+//     const updateData = {};
+    
+//     if (optimizeTimeFrom) {
+//       updateData.optimizeTimeFrom = new Date(optimizeTimeFrom);
+//     }
+    
+//     if (optimizeTimeTo) {
+//       updateData.optimizeTimeTo = new Date(optimizeTimeTo);
+//     }
+    
+//     if (date) {
+//       updateData.date = new Date(date);
+//     }
+
 export const editRequest = async (req, res) => {
   try {
-    const { id, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
-
-    // Prepare update data in the correct format for Prisma
-    const updateData = {};
-    
-    if (optimizeTimeFrom) {
-      updateData.optimizeTimeFrom = new Date(optimizeTimeFrom);
-    }
-    
-    if (optimizeTimeTo) {
-      updateData.optimizeTimeTo = new Date(optimizeTimeTo);
-    }
-    
-    if (date) {
-      updateData.date = new Date(date);
-    }
+    const { requestId, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
+    const request = await requestService.editRequest(
+      requestId,
+      optimizeTimeFrom,
+      optimizeTimeTo,
+      date,
+    );
+    return successResponse(res, 201, "Request updated successfully", request);
+  } catch (error) {
+    handleError(error, res);
+  }
+};
 
     const updatedRequest = await requestService.editRequest(id, updateData);
     
