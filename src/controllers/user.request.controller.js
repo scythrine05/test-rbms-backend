@@ -82,21 +82,21 @@ export const editRequest = async (req, res) => {
     handleError(error, res);
   }
 };
-    const updatedRequest = await requestService.editRequest(id, updateData);
+//     const updatedRequest = await requestService.editRequest(id, updateData);
     
-    return res.json({ 
-      success: true, 
-      data: updatedRequest 
-    });
-  } catch (error) {
-    console.error('Error editing request:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Internal server error',
-      error: error.message 
-    });
-  }
-};
+//     return res.json({ 
+//       success: true, 
+//       data: updatedRequest 
+//     });
+//   } catch (error) {
+//     console.error('Error editing request:', error);
+//     return res.status(500).json({ 
+//       success: false, 
+//       message: 'Internal server error',
+//       error: error.message 
+//     });
+//   }
+// };
 
 // In your controller file
 export const updateSanctionStatus = async (req, res) => {
