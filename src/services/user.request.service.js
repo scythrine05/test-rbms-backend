@@ -141,21 +141,42 @@ export const updateOptimizeTimes = async (
 };
 
 
-export const editRequest = async (id, updateData) => {
-  // Convert to Prisma-compatible format
-  const prismaUpdateData = {};
+// export const editRequest = async (id, updateData) => {
+//   // Convert to Prisma-compatible format
+//   const prismaUpdateData = {};
   
-  if (updateData.optimizeTimeFrom !== undefined) {
-    prismaUpdateData.optimizeTimeFrom = updateData.optimizeTimeFrom;
-  }
+//   if (updateData.optimizeTimeFrom !== undefined) {
+//     prismaUpdateData.optimizeTimeFrom = updateData.optimizeTimeFrom;
+//   }
   
-  if (updateData.optimizeTimeTo !== undefined) {
-    prismaUpdateData.optimizeTimeTo = updateData.optimizeTimeTo;
-  }
+//   if (updateData.optimizeTimeTo !== undefined) {
+//     prismaUpdateData.optimizeTimeTo = updateData.optimizeTimeTo;
+//   }
   
-  if (updateData.date !== undefined) {
-    prismaUpdateData.date = updateData.date;
-  }
+//   if (updateData.date !== undefined) {
+//     prismaUpdateData.date = updateData.date;
+//   }
+
+export const editRequest = async (
+  requestId,
+  optimizeTimeFrom,
+  optimizeTimeTo,
+  date
+) => {
+  const updatedRequest = await prisma.request.update({
+    where: { id: requestId },
+    data: {
+      optimizeTimeFrom,
+      optimizeTimeTo,
+      date,
+    },
+  });
+
+  if (!updatedRequest)
+    throw new Error("Request not found or update failed");
+  return updatedRequest;
+
+};
 
   const updatedRequest = await prisma.request.update({
     where: { id },
