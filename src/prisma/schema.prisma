@@ -121,6 +121,7 @@ model Optimize_Table{
   selectedLine            String
   selectedSection         String
   selectedStream          String
+  isEdited                Boolean?   @default(false)
 }
 
 model Otp {
