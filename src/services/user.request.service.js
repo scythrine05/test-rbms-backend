@@ -499,7 +499,7 @@ export const getManagerUsersRequests = async (
     managerId,
     role,
     page = 1,
-    limit = 10,
+    limit,
     startDate,
     endDate,
     status
