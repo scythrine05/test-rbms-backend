@@ -85,6 +85,16 @@ export const getManagerRequestData = async (
 ) => {
     try {
         // Validate inputs
+        if (!role) {
+            throw new Error('Role is required');
+        }
+
+        const validRoles = ['BRANCH_OFFICER', 'SENIOR_OFFICER', 'JUNIOR_OFFICER'];
+        if (!validRoles.includes(role)) {
+            console.error('Invalid role received:', role);
+            throw new Error(Invalid role: ${role});
+        }
+
         if (page < 1) throw new Error('Page must be at least 1');
         if (limit < 1) throw new Error('Limit must be at least 1');
 
@@ -111,23 +121,28 @@ export const getManagerRequestData = async (
         let userIds = [];
 
         switch (role) {
-            case 'BRANCH_OFFICER':
+            case 'BRANCH_OFFICER': {
                 const seniorIds = await getUserIds({ managerId, role: 'SENIOR_OFFICER' });
                 const juniorIds = await getUserIds({ managerId: seniorIds, role: 'JUNIOR_OFFICER' });
                 userIds = await getUserIds({ managerId: juniorIds, role: 'USER' });
                 break;
+            }
 
-            case 'SENIOR_OFFICER':
+            case 'SENIOR_OFFICER': {
                 const juniorOfficerIds = await getUserIds({ managerId, role: 'JUNIOR_OFFICER' });
                 userIds = await getUserIds({ managerId: juniorOfficerIds, role: 'USER' });
                 break;
+            }
 
-            case 'JUNIOR_OFFICER':
+            case 'JUNIOR_OFFICER': {
                 userIds = await getUserIds({ managerId, role: 'USER' });
                 break;
+            }
 
             default:
-                throw new Error(Role is not supported for this endpoint);
+                // This should never run due to validation above
+                console.error('Unhandled role:', role);
+                throw new Error(Role ${role} is not supported for this endpoint);
         }
 
         // Early return if no users found
@@ -143,7 +158,6 @@ export const getManagerRequestData = async (
         // 2. Build the where clause for requests
         const where = { 
             userId: { in: userIds },
-            // Add optimization status filter if requested
             ...(optimizedOnly && { isOptimized: true })
         };
 
@@ -195,7 +209,7 @@ export const getManagerRequestData = async (
         };
 
     } catch (error) {
-        console.error('Error in getManagerUsersRequests:', error);
+        console.error('Error in getManagerRequestData:', error.message || error);
         throw error;
     }
 };
