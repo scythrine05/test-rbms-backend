@@ -73,6 +73,133 @@ export const createRequest = async (data, userId) => {
     });
 };
 
+export const getManagerRequestData = async (
+    managerId,
+    role,
+    page = 1,
+    limit,
+    startDate,
+    endDate,
+    status,
+    optimizedOnly = false // New parameter to filter optimized requests
+) => {
+    try {
+        // Validate inputs
+        if (page < 1) throw new Error('Page must be at least 1');
+        if (limit < 1) throw new Error('Limit must be at least 1');
+
+        const skip = (page - 1) * limit;
+
+        // Helper to fetch user IDs with a single query
+        const getUserIds = async ({ managerId: managerIdCondition, role: targetRole, field = 'managerId' }) => {
+            const where = {
+                [field]: Array.isArray(managerIdCondition)
+                    ? { in: managerIdCondition }
+                    : managerIdCondition
+            };
+            if (targetRole) where.role = targetRole;
+
+            const users = await prisma.user.findMany({
+                where,
+                select: { id: true }
+            });
+
+            return users.map(user => user.id);
+        };
+
+        // 1. Build the list of USER-IDs under this manager hierarchy
+        let userIds = [];
+
+        switch (role) {
+            case 'BRANCH_OFFICER':
+                const seniorIds = await getUserIds({ managerId, role: 'SENIOR_OFFICER' });
+                const juniorIds = await getUserIds({ managerId: seniorIds, role: 'JUNIOR_OFFICER' });
+                userIds = await getUserIds({ managerId: juniorIds, role: 'USER' });
+                break;
+
+            case 'SENIOR_OFFICER':
+                const juniorOfficerIds = await getUserIds({ managerId, role: 'JUNIOR_OFFICER' });
+                userIds = await getUserIds({ managerId: juniorOfficerIds, role: 'USER' });
+                break;
+
+            case 'JUNIOR_OFFICER':
+                userIds = await getUserIds({ managerId, role: 'USER' });
+                break;
+
+            default:
+                throw new Error(Role ${role} is not supported for this endpoint);
+        }
+
+        // Early return if no users found
+        if (userIds.length === 0) {
+            return {
+                requests: [],
+                total: 0,
+                page,
+                totalPages: 0
+            };
+        }
+
+        // 2. Build the where clause for requests
+        const where = { 
+            userId: { in: userIds },
+            // Add optimization status filter if requested
+            ...(optimizedOnly && { isOptimized: true })
+        };
+
+        // Date filtering
+        if (startDate && endDate) {
+            where.date = {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            };
+        } else if (startDate) {
+            where.date = { gte: new Date(startDate) };
+        } else if (endDate) {
+            where.date = { lte: new Date(endDate) };
+        }
+
+        // Status filtering
+        if (status && status !== 'ALL') {
+            where.status = status;
+        }
+
+        // 3. Query requests with pagination
+        const [requests, total] = await Promise.all([
+            prisma.request.findMany({
+                where,
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            role: true,
+                            depot: true,
+                            department: true,
+                        },
+                    },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            prisma.request.count({ where }),
+        ]);
+
+        return {
+            requests,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        };
+
+    } catch (error) {
+        console.error('Error in getManagerUsersRequests:', error);
+        throw error;
+    }
+};
+
 
 export const updatedSatus = async (requestId, status, reason) => {
     const updatedRequest = await prisma.request.update({
