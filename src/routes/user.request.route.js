@@ -21,7 +21,7 @@ router.delete(
   requestController.deleteOptimizeDataRequest
 );
 
-
+router.get("/manager/manager-optimise-status",authenticateToken,requestController.getManagerRequestData);
 router.get("/:id", authenticateToken, requestController.getRequest);
 router.put("/:id", authenticateToken, requestController.updateRequest);
 router.delete("/:id", authenticateToken, requestController.deleteRequest);
