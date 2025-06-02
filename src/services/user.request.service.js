@@ -1301,7 +1301,7 @@ export const getManagerRequestData = async (
     startDate,
     endDate,
     status,
-    optimizedOnly = false
+    optimizedOnly = false // New parameter to filter optimized requests
 ) => {
     try {
         // Validate inputs
@@ -1363,6 +1363,7 @@ export const getManagerRequestData = async (
         // 2. Build the where clause for requests
         const where = { 
             userId: { in: userIds },
+            // Add optimization status filter if requested
             ...(optimizedOnly && { isOptimized: true })
         };
 
@@ -1414,7 +1415,7 @@ export const getManagerRequestData = async (
         };
 
     } catch (error) {
-        console.error('Error in getManagerRequestData:', error);
+        console.error('Error in getManagerUsersRequests:', error);
         throw error;
     }
 };
