@@ -11,6 +11,28 @@ export const createRequest = async (req, res) => {
         handleError(error, res);
     }
 };
+export const getManagerRequestData = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+        const status = req.query.status;
+
+        const result = await requestService.getManagerRequestData(
+            req.user.id,
+            req.user.role,
+            page,
+            limit,
+            startDate,
+            endDate,
+            status,
+        );
+        return successResponse(res, 200, "Manager's users requests retrieved successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
 export const updatedSatus = async (req, res) => {
     try {
         const { requestId, status, reason } = req.body;
