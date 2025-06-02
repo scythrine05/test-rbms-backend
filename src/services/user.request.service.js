@@ -127,7 +127,7 @@ export const getManagerRequestData = async (
                 break;
 
             default:
-                throw new Error(Role ${role} is not supported for this endpoint);
+                throw new Error(Role is not supported for this endpoint);
         }
 
         // Early return if no users found
