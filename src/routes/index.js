@@ -4,11 +4,13 @@ import express from "express";
 import authRoute from "./auth.route.js";
 import userRequestRoute from "./user.request.route.js";
 import officerRoute from "./officer.route.js";
+import openRoutes from "./open.route.js";
+
 const router = express.Router();
 
 router.use("/auth", authRoute);
 router.use("/user-request", userRequestRoute);
 router.use("/officer", officerRoute);
-// ghh
+router.use("/open", openRoutes);
 
 export default router;
