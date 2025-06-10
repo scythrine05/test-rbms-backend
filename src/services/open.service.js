@@ -59,7 +59,7 @@ export const updateSanctionedRequestAvailed = async (id, availedResponseValue) =
     const updatedRequest = await prisma.request.update({
         where: { id },
         data: {
-            availedResponse: availedResponseValue,
+            availedResponse: String(availedResponseValue),
         },
         select: {
             id: true,
