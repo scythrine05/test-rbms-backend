@@ -14,6 +14,7 @@ export const createRequestSchema = z.object({
     demandTimeFrom: z.string().datetime(),
     demandTimeTo: z.string().datetime(),
     sigDisconnection: z.boolean().optional(),
+    workNature:z.string().optional(),
     // elementarySectionFrom: z.string().optional(),
     adjacentLinesAffected: z.string().optional(),
     elementarySection: z.string().optional(),

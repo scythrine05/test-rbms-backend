@@ -71,5 +71,4 @@ router.put(
   managerMiddleware,
   requestController.batchAcceptRequests
 );
-
 export default router;

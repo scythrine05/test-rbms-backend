@@ -30,8 +30,8 @@ export const getManagerRequestData = async (req, res) => {
         );
         return successResponse(res, 200, "Manager's users requests retrieved successfully", result);
     } catch (error) {
-        handleError(error, res);
-    }
+        handleError(error, res);
+    }
 };
 export const updatedSatus = async (req, res) => {
     try {
@@ -54,21 +54,19 @@ export const userResponse = async (req, res) => {
 };
 
 export const updateOptimizeTimes = async (req, res) => {
-  try {
-    const { requestId, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
-    const request = await requestService.updateOptimizeTimes(
-      requestId,
-      optimizeTimeFrom,
-      optimizeTimeTo,
-      date,
-    );
-    return successResponse(res, 201, "Request updated successfully", request);
-  } catch (error) {
-    handleError(error, res);
-  }
+    try {
+        const { requestId, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
+        const request = await requestService.updateOptimizeTimes(
+            requestId,
+            optimizeTimeFrom,
+            optimizeTimeTo,
+            date,
+        );
+        return successResponse(res, 201, "Request updated successfully", request);
+    } catch (error) {
+        handleError(error, res);
+    }
 };
-
-
 
 // In your editRequest controller
 
@@ -78,58 +76,53 @@ export const updateOptimizeTimes = async (req, res) => {
 
 //     // Prepare update data in the correct format for Prisma
 //     const updateData = {};
-    
+
 //     if (optimizeTimeFrom) {
 //       updateData.optimizeTimeFrom = new Date(optimizeTimeFrom);
 //     }
-    
+
 //     if (optimizeTimeTo) {
 //       updateData.optimizeTimeTo = new Date(optimizeTimeTo);
 //     }
-    
+
 //     if (date) {
 //       updateData.date = new Date(date);
 //     }
 
 //     const updatedRequest = await requestService.editRequest(id, updateData);
-    
-//     return res.json({ 
-//       success: true, 
-//       data: updatedRequest 
+
+//     return res.json({
+//       success: true,
+//       data: updatedRequest
 //     });
 //   } catch (error) {
 //     console.error('Error editing request:', error);
-//     return res.status(500).json({ 
-//       success: false, 
+//     return res.status(500).json({
+//       success: false,
 //       message: 'Internal server error',
-//       error: error.message 
+//       error: error.message
 //     });
 //   }
 // };
 
 export const editRequest = async (req, res) => {
-  try {
-    const {
-      requestId,
-      optimizeTimeFrom,
-      optimizeTimeTo,
-      date,
-    } = req.body;
+    try {
+        const { requestId, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
 
-    const updatedRequest = await requestService.editRequest(
-      requestId,
-      optimizeTimeFrom,
-      optimizeTimeTo,
-      date
-    );
+        const updatedRequest = await requestService.editRequest(
+            requestId,
+            optimizeTimeFrom,
+            optimizeTimeTo,
+            date,
+        );
 
-    return res.json({
-      success: true,
-      data: updatedRequest,
-    });
-  } catch (error) {
-    handleError(error, res);
-  }
+        return res.json({
+            success: true,
+            data: updatedRequest,
+        });
+    } catch (error) {
+        handleError(error, res);
+    }
 };
 
 // In your controller file
