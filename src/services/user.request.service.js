@@ -57,7 +57,6 @@ export const createRequest = async (data, userId) => {
         "adminAcceptanceId",
         "sntDisconnectionAssignTo",
         "trdDisconnectionAssignTo",
-<<<<<<< feature/open-apis
         "numberOfTrackMachines",
         "siteSupervisorName",
         "siteSupervisorMobile",
@@ -80,9 +79,7 @@ export const createRequest = async (data, userId) => {
         "optimizeTimeTo",
         "sanctionedTimeFrom",
         "sanctionedTimeTo",
-=======
         "workNature"
->>>>>>> master
     ];
 
     // Filter out any fields that aren't in the allowedFields list
