@@ -57,6 +57,28 @@ export const createRequest = async (data, userId) => {
         "adminAcceptanceId",
         "sntDisconnectionAssignTo",
         "trdDisconnectionAssignTo",
+        "numberOfTrackMachines",
+        "siteSupervisorName",
+        "siteSupervisorMobile",
+        "applicantName",
+        "applicantMobile",
+        "cautionDurationDays",
+        "machineBlockClearingStation",
+        "powerBlockMastFrom",
+        "powerBlockMastTo",
+        "disconnectionRequestRejectRemarks",
+        "availedResponse",
+        "reasonForReject",
+        "userStatus",
+        "remarkByManager",
+        "userResponse",
+        "isSanctioned",
+        "adminRequestStatus",
+        "optimizeStatus",
+        "optimizeTimeFrom",
+        "optimizeTimeTo",
+        "sanctionedTimeFrom",
+        "sanctionedTimeTo",
     ];
 
     // Filter out any fields that aren't in the allowedFields list
@@ -78,17 +100,17 @@ export const updatedSatus = async (requestId, status, reason) => {
         where: { id: requestId },
         data: {
             userStatus: status,
-            reasonForReject: reason
+            reasonForReject: reason,
         },
         include: {
             user: {
                 select: {
                     id: true,
                     name: true,
-                    email: true
-                }
-            }
-        }
+                    email: true,
+                },
+            },
+        },
     });
 
     if (!updatedRequest) throw new Error("Request not found or update failed");
@@ -99,60 +121,50 @@ export const userResponse = async (requestId, userResponse, reason) => {
         where: { id: requestId },
         data: {
             userResponse: userResponse,
-            availedResponse: reason
+            availedResponse: reason,
         },
         include: {
             user: {
                 select: {
                     id: true,
                     name: true,
-                    email: true
-                }
-            }
-        }
+                    email: true,
+                },
+            },
+        },
     });
 
     if (!updatedRequest) throw new Error("Request not found or update failed");
     return updatedRequest;
 };
 
+export const updateOptimizeTimes = async (requestId, optimizeTimeFrom, optimizeTimeTo, date) => {
+    const updatedRequest = await prisma.Optimize_Table.update({
+        where: { id: requestId },
+        data: {
+            optimizeTimeFrom,
+            optimizeTimeTo,
+            date,
+            isEdited: true,
+        },
+    });
 
-
-export const updateOptimizeTimes = async (
-  requestId,
-  optimizeTimeFrom,
-  optimizeTimeTo,
-  date
-) => {
-  const updatedRequest = await prisma.Optimize_Table.update({
-    where: { id: requestId },
-    data: {
-      optimizeTimeFrom,
-      optimizeTimeTo,
-      date,
-      isEdited :true
-    },
-  });
-
-  if (!updatedRequest)
-    throw new Error("Request not found or update failed");
-  return updatedRequest;
-
+    if (!updatedRequest) throw new Error("Request not found or update failed");
+    return updatedRequest;
 };
-
 
 // export const editRequest = async (id, updateData) => {
 //   // Convert to Prisma-compatible format
 //   const prismaUpdateData = {};
-  
+
 //   if (updateData.optimizeTimeFrom !== undefined) {
 //     prismaUpdateData.optimizeTimeFrom = updateData.optimizeTimeFrom;
 //   }
-  
+
 //   if (updateData.optimizeTimeTo !== undefined) {
 //     prismaUpdateData.optimizeTimeTo = updateData.optimizeTimeTo;
 //   }
-  
+
 //   if (updateData.date !== undefined) {
 //     prismaUpdateData.date = updateData.date;
 //   }
@@ -160,75 +172,60 @@ export const updateOptimizeTimes = async (
 //     where: { id },
 //     data: prismaUpdateData,
 //   });
-  
+
 //   if (!updatedRequest) {
 //     throw new Error("Request not found or update failed");
 //   }
-  
+
 //   return updatedRequest;
 // };
 
-export const editRequest = async (
-  requestId,
-  optimizeTimeFrom,
-  optimizeTimeTo,
-  date
-) => {
-  const updatedRequest = await prisma.request.update({
-    where: { id: requestId },
-    data: {
-      optimizeTimeFrom,
-      optimizeTimeTo,
-      date,
-    },
-  });
+export const editRequest = async (requestId, optimizeTimeFrom, optimizeTimeTo, date) => {
+    const updatedRequest = await prisma.request.update({
+        where: { id: requestId },
+        data: {
+            optimizeTimeFrom,
+            optimizeTimeTo,
+            date,
+        },
+    });
 
-  if (!updatedRequest)
-    throw new Error("Request not found or update failed");
-  return updatedRequest;
-
+    if (!updatedRequest) throw new Error("Request not found or update failed");
+    return updatedRequest;
 };
-
-
 
 // In your service file
 export const updateSanctionStatus = async (requests) => {
     try {
         return await prisma.$transaction(
-            requests.map(request =>
+            requests.map((request) =>
                 prisma.Request.update({
                     where: { id: request.id },
                     data: {
                         isSanctioned: true,
 
-
                         sanctionedTimeFrom: request.optimizeTimeFrom,
                         sanctionedTimeTo: request.optimizeTimeTo,
-
-
                     },
-                })
-            )
+                }),
+            ),
         );
     } catch (error) {
-        console.error('Database error in updateSanctionStatus:', error);
-        throw new Error('Failed to update records in database');
+        console.error("Database error in updateSanctionStatus:", error);
+        throw new Error("Failed to update records in database");
     }
 };
-
 
 export const deleteOptimizeDataRequest = async (requestId) => {
     try {
         return await prisma.request.delete({
-            where: { id: requestId }
+            where: { id: requestId },
         });
     } catch (error) {
         console.error("Database error in deleteOptimizeDataRequest:", error);
         throw error; // Let the controller handle it
     }
 };
-
-
 
 export const getRequestById = async (id) => {
     const request = await prisma.request.findUnique({
@@ -280,21 +277,18 @@ export const updateRequestStatus = async (id, status, managerId, ManagerResponse
     });
 };
 
-
-
-
-
 export const getUserRequests = async (userId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
     const whereClause = {
         userId,
-        ...(startDate && endDate && {
-            date: {
-                gte: new Date(startDate),
-                lte: new Date(endDate)
-            }
-        })
+        ...(startDate &&
+            endDate && {
+                date: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            }),
     };
 
     const [requests, total] = await Promise.all([
@@ -315,25 +309,19 @@ export const getUserRequests = async (userId, page = 1, limit = 10, startDate, e
     };
 };
 
-
-export const getUserRequestsData = async (
-    userId,
-    page = 1,
-    limit = 30,
-    startDate,
-    endDate
-) => {
+export const getUserRequestsData = async (userId, page = 1, limit = 30, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
     const whereClause = {
         userId,
         optimizeStatus: true,
-        ...(startDate && endDate && {
-            date: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-            },
-        }),
+        ...(startDate &&
+            endDate && {
+                date: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            }),
     };
 
     const [requests, total] = await Promise.all([
@@ -354,54 +342,49 @@ export const getUserRequestsData = async (
     };
 };
 
+export const getManagerData = async (userId, page = 1, limit = 30, startDate, endDate) => {
+    const skip = (page - 1) * limit;
+    const whereClause = {
+        userId,
+        optimizeStatus: true,
+        ...(startDate &&
+            endDate && {
+                date: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            }),
+    };
 
-export const getManagerData = async (
-  userId,
-  page = 1,
-  limit = 30,
-  startDate,
-  endDate
-) => {
-  const skip = (page - 1) * limit;
-  const whereClause = {
-    userId,
-    optimizeStatus: true,
-    ...(startDate && endDate && {
-      date: {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      },
-    }),
-  };
+    const [requests, total] = await Promise.all([
+        prisma.request.findMany({
+            where: whereClause,
+            orderBy: { date: "desc" },
+            skip,
+            take: limit,
+        }),
+        prisma.request.count({ where: whereClause }),
+    ]);
 
-  const [requests, total] = await Promise.all([
-    prisma.request.findMany({
-      where: whereClause,
-      orderBy: { date: "desc" },
-      skip,
-      take: limit,
-    }),
-    prisma.request.count({ where: whereClause }),
-  ]);
-
-  return {
-    requests,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  };
+    return {
+        requests,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+    };
 };
 export const getManagerRequests = async (managerId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
     const whereClause = {
         managerId,
-        ...(startDate && endDate && {
-            date: {
-                gte: new Date(startDate),
-                lte: new Date(endDate)
-            }
-        })
+        ...(startDate &&
+            endDate && {
+                date: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            }),
     };
 
     const [requests, total] = await Promise.all([
@@ -440,7 +423,14 @@ export const getManagerRequests = async (managerId, page = 1, limit = 10, startD
     };
 };
 
-export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userEmail, startDate, endDate) => {
+export const getOtherRequests = async (
+    selectedDepo,
+    page = 1,
+    limit = 10,
+    userEmail,
+    startDate,
+    endDate,
+) => {
     const skip = (page - 1) * limit;
 
     // Build the where clause
@@ -454,14 +444,15 @@ export const getOtherRequests = async (selectedDepo, page = 1, limit = 10, userE
             {
                 trdActionsNeeded: true,
                 trdDisconnectionAssignTo: userEmail,
-            }
+            },
         ],
-        ...(startDate && endDate && {
-            date: {
-                gte: new Date(startDate),
-                lte: new Date(endDate)
-            }
-        })
+        ...(startDate &&
+            endDate && {
+                date: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            }),
     };
 
     const [requests, total] = await Promise.all([
@@ -490,7 +481,9 @@ export const updateOtherRequest = async (id, acceptance, disconnectionRequestRej
         where: { id },
         data: {
             DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
-            disconnectionRequestRejectRemarks: !acceptance ? disconnectionRequestRejectRemarks : null,
+            disconnectionRequestRejectRemarks: !acceptance
+                ? disconnectionRequestRejectRemarks
+                : null,
         },
     });
 };
@@ -501,49 +494,56 @@ export const getManagerUsersRequests = async (
     limit,
     startDate,
     endDate,
-    status
+    status,
 ) => {
     try {
         // Validate inputs
-        if (page < 1) throw new Error('Page must be at least 1');
-        if (limit < 1) throw new Error('Limit must be at least 1');
+        if (page < 1) throw new Error("Page must be at least 1");
+        if (limit < 1) throw new Error("Limit must be at least 1");
 
         const skip = (page - 1) * limit;
 
         // Helper to fetch user IDs with a single query
-        const getUserIds = async ({ managerId: managerIdCondition, role: targetRole, field = 'managerId' }) => {
+        const getUserIds = async ({
+            managerId: managerIdCondition,
+            role: targetRole,
+            field = "managerId",
+        }) => {
             const where = {
                 [field]: Array.isArray(managerIdCondition)
                     ? { in: managerIdCondition }
-                    : managerIdCondition
+                    : managerIdCondition,
             };
             if (targetRole) where.role = targetRole;
 
             const users = await prisma.user.findMany({
                 where,
-                select: { id: true }
+                select: { id: true },
             });
 
-            return users.map(user => user.id);
+            return users.map((user) => user.id);
         };
 
         // 1. Build the list of USER-IDs under this manager hierarchy
         let userIds = [];
 
         switch (role) {
-            case 'BRANCH_OFFICER':
-                const seniorIds = await getUserIds({ managerId, role: 'SENIOR_OFFICER' });
-                const juniorIds = await getUserIds({ managerId: seniorIds, role: 'JUNIOR_OFFICER' });
-                userIds = await getUserIds({ managerId: juniorIds, role: 'USER' });
+            case "BRANCH_OFFICER":
+                const seniorIds = await getUserIds({ managerId, role: "SENIOR_OFFICER" });
+                const juniorIds = await getUserIds({
+                    managerId: seniorIds,
+                    role: "JUNIOR_OFFICER",
+                });
+                userIds = await getUserIds({ managerId: juniorIds, role: "USER" });
                 break;
 
-            case 'SENIOR_OFFICER':
-                const juniorOfficerIds = await getUserIds({ managerId, role: 'JUNIOR_OFFICER' });
-                userIds = await getUserIds({ managerId: juniorOfficerIds, role: 'USER' });
+            case "SENIOR_OFFICER":
+                const juniorOfficerIds = await getUserIds({ managerId, role: "JUNIOR_OFFICER" });
+                userIds = await getUserIds({ managerId: juniorOfficerIds, role: "USER" });
                 break;
 
-            case 'JUNIOR_OFFICER':
-                userIds = await getUserIds({ managerId, role: 'USER' });
+            case "JUNIOR_OFFICER":
+                userIds = await getUserIds({ managerId, role: "USER" });
                 break;
 
             default:
@@ -556,7 +556,7 @@ export const getManagerUsersRequests = async (
                 requests: [],
                 total: 0,
                 page,
-                totalPages: 0
+                totalPages: 0,
             };
         }
 
@@ -567,7 +567,7 @@ export const getManagerUsersRequests = async (
         if (startDate && endDate) {
             where.date = {
                 gte: new Date(startDate),
-                lte: new Date(endDate)
+                lte: new Date(endDate),
             };
         } else if (startDate) {
             where.date = { gte: new Date(startDate) };
@@ -576,7 +576,7 @@ export const getManagerUsersRequests = async (
         }
 
         // Status filtering
-        if (status && status !== 'ALL') {
+        if (status && status !== "ALL") {
             where.status = status;
         }
 
@@ -596,7 +596,7 @@ export const getManagerUsersRequests = async (
                         },
                     },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: { createdAt: "desc" },
                 skip,
                 take: limit,
             }),
@@ -609,9 +609,8 @@ export const getManagerUsersRequests = async (
             page,
             totalPages: Math.ceil(total / limit),
         };
-
     } catch (error) {
-        console.error('Error in getManagerUsersRequests:', error);
+        console.error("Error in getManagerUsersRequests:", error);
         throw error;
     }
 };
@@ -826,7 +825,14 @@ export const getManagerUsersRequests = async (
 //         totalPages: Math.ceil(total / limit)
 //     };
 // };
-export const getAdminPendingRequests = async (adminId, role, page = 1, limit = 10, startDate, endDate) => {
+export const getAdminPendingRequests = async (
+    adminId,
+    role,
+    page = 1,
+    limit = 10,
+    startDate,
+    endDate,
+) => {
     const skip = (page - 1) * limit;
 
     const fetchChildIds = async (parentIds, childRole) => {
@@ -854,14 +860,15 @@ export const getAdminPendingRequests = async (adminId, role, page = 1, limit = 1
     const whereClause = {
         userId: { in: userIds },
         managerAcceptance: true,
-        ...(startDate && endDate && {
-            date: {
-                gte: new Date(startDate),
-                lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
-            }
-        })
+        ...(startDate &&
+            endDate && {
+                date: {
+                    gte: new Date(startDate),
+                    lt: new Date(new Date(endDate).getTime() + 24 * 60 * 60 * 1000),
+                },
+            }),
     };
-    console.log(whereClause)
+    console.log(whereClause);
     // 3) Fetch & paginate requests
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
@@ -886,7 +893,7 @@ export const getAdminPendingRequests = async (adminId, role, page = 1, limit = 1
             where: whereClause,
         }),
     ]);
-    console.log("requests", requests)
+    console.log("requests", requests);
 
     return {
         requests,
@@ -966,7 +973,7 @@ export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
         data: {
             adminAcceptance: acceptance,
             adminAcceptanceId: adminId,
-            adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED"
+            adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED",
         },
     });
 };
@@ -985,11 +992,11 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
         adminAcceptanceId: adminId,
         ...(startDateTime &&
             endDateTime && {
-            date: {
-                gte: startDateTime,
-                lte: endDateTime,
-            },
-        }),
+                date: {
+                    gte: startDateTime,
+                    lte: endDateTime,
+                },
+            }),
     };
     console.log(whereClause);
     const [requests, total] = await Promise.all([
@@ -1027,18 +1034,12 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
     };
 };
 
-
-
-
-
-
-
 export const approveAllPendingRequests = async (adminId) => {
     return await prisma.$transaction(async (tx) => {
         // First get all pending requests that will be updated
         const pendingRequests = await tx.request.findMany({
             where: {
-                adminRequestStatus: 'PENDING',
+                adminRequestStatus: "PENDING",
             },
             select: {
                 id: true,
@@ -1046,16 +1047,16 @@ export const approveAllPendingRequests = async (adminId) => {
         });
 
         if (pendingRequests.length === 0) {
-            throw new Error('No pending requests found');
+            throw new Error("No pending requests found");
         }
 
         // Update all pending requests - removed updatedAt
         await tx.request.updateMany({
             where: {
-                adminRequestStatus: 'PENDING',
+                adminRequestStatus: "PENDING",
             },
             data: {
-                adminRequestStatus: 'ACCEPTED',
+                adminRequestStatus: "ACCEPTED",
                 adminAcceptance: true,
                 adminAcceptanceId: adminId,
                 // Removed: updatedAt: new Date(),
@@ -1064,12 +1065,10 @@ export const approveAllPendingRequests = async (adminId) => {
 
         return {
             count: pendingRequests.length,
-            requestIds: pendingRequests.map(req => req.id),
+            requestIds: pendingRequests.map((req) => req.id),
         };
     });
 };
-
-
 
 // export const saveOptimizedData = async (optimizedData) => {
 //     try {
@@ -1089,8 +1088,8 @@ export const approveAllPendingRequests = async (adminId) => {
 //                     selectedDepartment: request.selectedDepartment,
 //                     selectedDepo: request.selectedDepo,
 //                     selectedStream: request.selectedStream,
-//                     selectedLine: request.selectedLine || 
-//                                 request.processedLineSections?.[0]?.lineName || 
+//                     selectedLine: request.selectedLine ||
+//                                 request.processedLineSections?.[0]?.lineName ||
 //                                 'N/A',
 //                     selectedSection: request.selectedSection,
 //                 };
@@ -1098,21 +1097,21 @@ export const approveAllPendingRequests = async (adminId) => {
 //             skipDuplicates: true
 //         });
 
-//         return { 
-//             success: true, 
+//         return {
+//             success: true,
 //             count: created.count,
 //             message: `${created.count} new optimized records added`
 //         };
 //     } catch (error) {
 //         console.error('Failed to add optimized data:', error);
 //         throw new Error('Database operation failed');
-//     } 
+//     }
 // };
 export const saveOptimizedData = async (optimizedData) => {
     try {
         // First, create the optimized records
         const created = await prisma.optimize_Table.createMany({
-            data: optimizedData.map(request => {
+            data: optimizedData.map((request) => {
                 // Combine date with time for proper DateTime format
                 const timeFrom = new Date(`${request.date}T${request.optimisedTimeFrom}:00`);
                 const timeTo = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
@@ -1127,41 +1126,51 @@ export const saveOptimizedData = async (optimizedData) => {
                     selectedDepartment: request.selectedDepartment,
                     selectedDepo: request.selectedDepo,
                     selectedStream: request.selectedStream,
-                    selectedLine: request.selectedLine ||
+                    selectedLine:
+                        request.selectedLine ||
                         request.processedLineSections?.[0]?.lineName ||
-                        'N/A',
+                        "N/A",
                     selectedSection: request.selectedSection,
                 };
             }),
-            skipDuplicates: true
+            skipDuplicates: true,
         });
 
         // Then update the original requests with the optimized times
-        await Promise.all(optimizedData.map(async (request) => {
-            const timeFrom = new Date(`${request.date}T${request.optimisedTimeFrom}:00`);
-            const timeTo = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
+        await Promise.all(
+            optimizedData.map(async (request) => {
+                const timeFrom = new Date(`${request.date}T${request.optimisedTimeFrom}:00`);
+                const timeTo = new Date(`${request.date}T${request.optimisedTimeTo}:00`);
 
-            await prisma.Request.update({
-                where: { id: request.id },
-                data: {
-                    optimizeTimeFrom: timeFrom,
-                    optimizeTimeTo: timeTo
-                }
-            });
-        }));
+                await prisma.Request.update({
+                    where: { id: request.id },
+                    data: {
+                        optimizeTimeFrom: timeFrom,
+                        optimizeTimeTo: timeTo,
+                    },
+                });
+            }),
+        );
 
         return {
             success: true,
             count: created.count,
-            message: `${created.count} new optimized records added and requests updated`
+            message: `${created.count} new optimized records added and requests updated`,
         };
     } catch (error) {
-        console.error('Failed to process optimized data:', error);
-        throw new Error('Database operation failed');
+        console.error("Failed to process optimized data:", error);
+        throw new Error("Database operation failed");
     }
 };
 
-export const getTrdRequests = async (selectedDepo, page = 1, limit = 10, userEmail, startDate, endDate) => {
+export const getTrdRequests = async (
+    selectedDepo,
+    page = 1,
+    limit = 10,
+    userEmail,
+    startDate,
+    endDate,
+) => {
     const skip = (page - 1) * limit;
 
     // Build the where clause
@@ -1169,12 +1178,13 @@ export const getTrdRequests = async (selectedDepo, page = 1, limit = 10, userEma
         trdActionsNeeded: true,
         selectedDepo: selectedDepo,
         ...(userEmail && { trdDisconnectionAssignTo: userEmail }),
-        ...(startDate && endDate && {
-            date: {
-                gte: new Date(startDate),
-                lte: new Date(endDate)
-            }
-        })
+        ...(startDate &&
+            endDate && {
+                date: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            }),
     };
 
     const [requests, total] = await Promise.all([
@@ -1206,9 +1216,9 @@ export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, 
 
     // 1. Get optimized IDs
     const optimizedIds = await prisma.optimize_Table.findMany({
-        select: { id: true }
+        select: { id: true },
     });
-    const optimizedIdList = optimizedIds.map(item => item.id);
+    const optimizedIdList = optimizedIds.map((item) => item.id);
 
     // 2. Get matching requests
     const whereClause = {
@@ -1217,9 +1227,10 @@ export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, 
         adminRequestStatus: "ACCEPTED",
         managerAcceptance: true,
         adminAcceptanceId: adminId,
-        ...(startDateTime && endDateTime && {
-            date: { gte: startDateTime, lte: endDateTime }
-        })
+        ...(startDateTime &&
+            endDateTime && {
+                date: { gte: startDateTime, lte: endDateTime },
+            }),
     };
 
     const [requests, total] = await Promise.all([
@@ -1230,18 +1241,18 @@ export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, 
             skip,
             take: limit,
         }),
-        prisma.request.count({ where: whereClause })
+        prisma.request.count({ where: whereClause }),
     ]);
 
     // 3. Get optimize data separately if needed
     const optimizeData = await prisma.optimize_Table.findMany({
-        where: { id: { in: optimizedIdList } }
+        where: { id: { in: optimizedIdList } },
     });
 
     // Combine data
-    const result = requests.map(request => ({
+    const result = requests.map((request) => ({
         ...request,
-        optimizeData: optimizeData.find(opt => opt.id === request.id)
+        optimizeData: optimizeData.find((opt) => opt.id === request.id),
     }));
 
     return {
@@ -1249,16 +1260,15 @@ export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, 
         total,
         page,
         totalPages: Math.ceil(total / limit),
-        dateRange: { startDate: startDateTime, endDate: endDateTime }
+        dateRange: { startDate: startDateTime, endDate: endDateTime },
     };
 };
-
 
 export const saveOptimizedRequestsStatus = async (requestIds) => {
     try {
         await prisma.Request.updateMany({
             where: {
-                id: { in: requestIds }
+                id: { in: requestIds },
             },
             data: {
                 optimizeStatus: true,
@@ -1275,22 +1285,20 @@ export const saveOptimizedRequestsStatus = async (requestIds) => {
     }
 };
 
-
-
 export const batchAcceptRequests = async (ids) => {
-  const result = await prisma.request.updateMany({
-    where: {
-      id: {
-        in: ids,
-      },
-      status: "PENDING",
-    },
-    data: {
-      status: "APPROVED",
-    },
-  });
+    const result = await prisma.request.updateMany({
+        where: {
+            id: {
+                in: ids,
+            },
+            status: "PENDING",
+        },
+        data: {
+            status: "APPROVED",
+        },
+    });
 
-  return result.count; // Prisma returns `{ count: number }`
+    return result.count; // Prisma returns `{ count: number }`
 };
 
 export const getManagerRequestData = async (
@@ -1301,49 +1309,56 @@ export const getManagerRequestData = async (
     startDate,
     endDate,
     status,
-    optimizedOnly = false // New parameter to filter optimized requests
+    optimizedOnly = false, // New parameter to filter optimized requests
 ) => {
     try {
         // Validate inputs
-        if (page < 1) throw new Error('Page must be at least 1');
-        if (limit < 1) throw new Error('Limit must be at least 1');
+        if (page < 1) throw new Error("Page must be at least 1");
+        if (limit < 1) throw new Error("Limit must be at least 1");
 
         const skip = (page - 1) * limit;
 
         // Helper to fetch user IDs with a single query
-        const getUserIds = async ({ managerId: managerIdCondition, role: targetRole, field = 'managerId' }) => {
+        const getUserIds = async ({
+            managerId: managerIdCondition,
+            role: targetRole,
+            field = "managerId",
+        }) => {
             const where = {
                 [field]: Array.isArray(managerIdCondition)
                     ? { in: managerIdCondition }
-                    : managerIdCondition
+                    : managerIdCondition,
             };
             if (targetRole) where.role = targetRole;
 
             const users = await prisma.user.findMany({
                 where,
-                select: { id: true }
+                select: { id: true },
             });
 
-            return users.map(user => user.id);
+            return users.map((user) => user.id);
         };
 
         // 1. Build the list of USER-IDs under this manager hierarchy
         let userIds = [];
 
         switch (role) {
-            case 'BRANCH_OFFICER':
-                const seniorIds = await getUserIds({ managerId, role: 'SENIOR_OFFICER' });
-                const juniorIds = await getUserIds({ managerId: seniorIds, role: 'JUNIOR_OFFICER' });
-                userIds = await getUserIds({ managerId: juniorIds, role: 'USER' });
+            case "BRANCH_OFFICER":
+                const seniorIds = await getUserIds({ managerId, role: "SENIOR_OFFICER" });
+                const juniorIds = await getUserIds({
+                    managerId: seniorIds,
+                    role: "JUNIOR_OFFICER",
+                });
+                userIds = await getUserIds({ managerId: juniorIds, role: "USER" });
                 break;
 
-            case 'SENIOR_OFFICER':
-                const juniorOfficerIds = await getUserIds({ managerId, role: 'JUNIOR_OFFICER' });
-                userIds = await getUserIds({ managerId: juniorOfficerIds, role: 'USER' });
+            case "SENIOR_OFFICER":
+                const juniorOfficerIds = await getUserIds({ managerId, role: "JUNIOR_OFFICER" });
+                userIds = await getUserIds({ managerId: juniorOfficerIds, role: "USER" });
                 break;
 
-            case 'JUNIOR_OFFICER':
-                userIds = await getUserIds({ managerId, role: 'USER' });
+            case "JUNIOR_OFFICER":
+                userIds = await getUserIds({ managerId, role: "USER" });
                 break;
 
             default:
@@ -1356,22 +1371,22 @@ export const getManagerRequestData = async (
                 requests: [],
                 total: 0,
                 page,
-                totalPages: 0
+                totalPages: 0,
             };
         }
 
         // 2. Build the where clause for requests
-        const where = { 
+        const where = {
             userId: { in: userIds },
             // Add optimization status filter if requested
-            ...(optimizedOnly && { isOptimized: true })
+            ...(optimizedOnly && { isOptimized: true }),
         };
 
         // Date filtering
         if (startDate && endDate) {
             where.date = {
                 gte: new Date(startDate),
-                lte: new Date(endDate)
+                lte: new Date(endDate),
             };
         } else if (startDate) {
             where.date = { gte: new Date(startDate) };
@@ -1380,7 +1395,7 @@ export const getManagerRequestData = async (
         }
 
         // Status filtering
-        if (status && status !== 'ALL') {
+        if (status && status !== "ALL") {
             where.status = status;
         }
 
@@ -1400,7 +1415,7 @@ export const getManagerRequestData = async (
                         },
                     },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: { createdAt: "desc" },
                 skip,
                 take: limit,
             }),
@@ -1413,9 +1428,8 @@ export const getManagerRequestData = async (
             page,
             totalPages: Math.ceil(total / limit),
         };
-
     } catch (error) {
-        console.error('Error in getManagerUsersRequests:', error);
-        throw error;
-    }
+        console.error("Error in getManagerUsersRequests:", error);
+        throw error;
+    }
 };
