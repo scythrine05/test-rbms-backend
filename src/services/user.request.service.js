@@ -79,7 +79,7 @@ export const createRequest = async (data, userId) => {
         "optimizeTimeTo",
         "sanctionedTimeFrom",
         "sanctionedTimeTo",
-        "workNature"
+        "workNature",
     ];
 
     // Filter out any fields that aren't in the allowedFields list
@@ -1035,7 +1035,6 @@ export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
 //     };
 // };
 
-
 export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
@@ -1069,8 +1068,6 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
         adminAcceptance: true,
         adminRequestStatus: "ACCEPTED",
         managerAcceptance: true,
-<<<<<<< feature/open-apis
-        adminAcceptanceId: adminId,
         ...(startDateTime &&
             endDateTime && {
                 date: {
@@ -1078,14 +1075,6 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
                     lte: endDateTime,
                 },
             }),
-=======
-        ...(startDateTime && endDateTime && {
-            date: {
-                gte: startDateTime,
-                lte: endDateTime,
-            },
-        }),
->>>>>>> master
     };
 
     const [requests, total] = await Promise.all([
@@ -1122,12 +1111,6 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
     };
 };
 
-<<<<<<< feature/open-apis
-=======
-
-
-
->>>>>>> master
 export const approveAllPendingRequests = async (adminId) => {
     return await prisma.$transaction(async (tx) => {
         // First get all pending requests that will be updated
@@ -1463,7 +1446,7 @@ export const batchAcceptRequests = async (ids) => {
 //         }
 
 //         // 2. Build the where clause for requests
-//         const where = { 
+//         const where = {
 //             userId: { in: userIds },
 //             // Add optimization status filter if requested
 //             ...(optimizedOnly && { isOptimized: true })
@@ -1649,14 +1632,7 @@ export const getManagerRequestData = async (
             totalPages: Math.ceil(total / limit),
         };
     } catch (error) {
-<<<<<<< feature/open-apis
         console.error("Error in getManagerUsersRequests:", error);
         throw error;
     }
 };
-=======
-        console.error('Error in getManagerUsersRequests:', error);
-        throw error;
-    }
-};
->>>>>>> master
