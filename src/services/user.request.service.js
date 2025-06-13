@@ -57,6 +57,7 @@ export const createRequest = async (data, userId) => {
         "adminAcceptanceId",
         "sntDisconnectionAssignTo",
         "trdDisconnectionAssignTo",
+<<<<<<< feature/open-apis
         "numberOfTrackMachines",
         "siteSupervisorName",
         "siteSupervisorMobile",
@@ -79,6 +80,9 @@ export const createRequest = async (data, userId) => {
         "optimizeTimeTo",
         "sanctionedTimeFrom",
         "sanctionedTimeTo",
+=======
+        "workNature"
+>>>>>>> master
     ];
 
     // Filter out any fields that aren't in the allowedFields list
@@ -978,17 +982,97 @@ export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
     });
 };
 
+// export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate, endDate) => {
+//     const skip = (page - 1) * limit;
+
+//     // Convert dates to start and end of day in ISO format
+//     const startDateTime = startDate ? new Date(startDate + "T00:00:00.000Z") : undefined;
+//     const endDateTime = endDate ? new Date(endDate + "T23:59:59.999Z") : undefined;
+
+//     const whereClause = {
+//         adminAcceptance: true,
+//         adminRequestStatus: "ACCEPTED",
+//         managerAcceptance: true,
+//         adminAcceptanceId: adminId,
+//         ...(startDateTime &&
+//             endDateTime && {
+//             date: {
+//                 gte: startDateTime,
+//                 lte: endDateTime,
+//             },
+//         }),
+//     };
+//     console.log(whereClause);
+//     const [requests, total] = await Promise.all([
+//         prisma.request.findMany({
+//             where: whereClause,
+//             include: {
+//                 user: {
+//                     select: {
+//                         id: true,
+//                         name: true,
+//                         email: true,
+//                         role: true,
+//                     },
+//                 },
+//             },
+//             orderBy: { createdAt: "desc" },
+//             skip,
+//             take: limit,
+//         }),
+//         prisma.request.count({
+//             where: whereClause,
+//         }),
+//     ]);
+//     console.log(requests);
+
+//     return {
+//         requests,
+//         total,
+//         page,
+//         totalPages: Math.ceil(total / limit),
+//         dateRange: {
+//             startDate: startDateTime,
+//             endDate: endDateTime,
+//         },
+//     };
+// };
+
+
 export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
-    // Convert dates to start and end of day in ISO format
+    const fetchChildIds = async (parentIds, childRole) => {
+        if (!parentIds || parentIds.length === 0) return [];
+        const recs = await prisma.user.findMany({
+            where: { managerId: { in: parentIds }, role: childRole },
+            select: { id: true },
+        });
+        return recs.map((r) => r.id);
+    };
+
+    // Build user hierarchy under admin
+    const branchRecs = await prisma.user.findMany({
+        where: { adminId, role: "BRANCH_OFFICER" },
+        select: { id: true },
+    });
+    const branchIds = branchRecs.map((r) => r.id);
+
+    const seniorIds = await fetchChildIds(branchIds, "SENIOR_OFFICER");
+    const juniorIds = await fetchChildIds(seniorIds, "JUNIOR_OFFICER");
+    const userIds = await fetchChildIds(juniorIds, "USER");
+
+    // Convert date range
     const startDateTime = startDate ? new Date(startDate + "T00:00:00.000Z") : undefined;
     const endDateTime = endDate ? new Date(endDate + "T23:59:59.999Z") : undefined;
 
+    // Final where clause
     const whereClause = {
+        userId: { in: userIds },
         adminAcceptance: true,
         adminRequestStatus: "ACCEPTED",
         managerAcceptance: true,
+<<<<<<< feature/open-apis
         adminAcceptanceId: adminId,
         ...(startDateTime &&
             endDateTime && {
@@ -997,8 +1081,16 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
                     lte: endDateTime,
                 },
             }),
+=======
+        ...(startDateTime && endDateTime && {
+            date: {
+                gte: startDateTime,
+                lte: endDateTime,
+            },
+        }),
+>>>>>>> master
     };
-    console.log(whereClause);
+
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
             where: whereClause,
@@ -1020,7 +1112,6 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
             where: whereClause,
         }),
     ]);
-    console.log(requests);
 
     return {
         requests,
@@ -1034,6 +1125,12 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
     };
 };
 
+<<<<<<< feature/open-apis
+=======
+
+
+
+>>>>>>> master
 export const approveAllPendingRequests = async (adminId) => {
     return await prisma.$transaction(async (tx) => {
         // First get all pending requests that will be updated
@@ -1301,6 +1398,132 @@ export const batchAcceptRequests = async (ids) => {
     return result.count; // Prisma returns `{ count: number }`
 };
 
+// export const getManagerRequestData = async (
+//     managerId,
+//     role,
+//     page = 1,
+//     limit,
+//     startDate,
+//     endDate,
+//     status,
+//     optimizedOnly = false // New parameter to filter optimized requests
+// ) => {
+//     try {
+//         // Validate inputs
+//         if (page < 1) throw new Error('Page must be at least 1');
+//         if (limit < 1) throw new Error('Limit must be at least 1');
+
+//         const skip = (page - 1) * limit;
+
+//         // Helper to fetch user IDs with a single query
+//         const getUserIds = async ({ managerId: managerIdCondition, role: targetRole, field = 'managerId' }) => {
+//             const where = {
+//                 [field]: Array.isArray(managerIdCondition)
+//                     ? { in: managerIdCondition }
+//                     : managerIdCondition
+//             };
+//             if (targetRole) where.role = targetRole;
+
+//             const users = await prisma.user.findMany({
+//                 where,
+//                 select: { id: true }
+//             });
+
+//             return users.map(user => user.id);
+//         };
+
+//         // 1. Build the list of USER-IDs under this manager hierarchy
+//         let userIds = [];
+
+//         switch (role) {
+//             case 'BRANCH_OFFICER':
+//                 const seniorIds = await getUserIds({ managerId, role: 'SENIOR_OFFICER' });
+//                 const juniorIds = await getUserIds({ managerId: seniorIds, role: 'JUNIOR_OFFICER' });
+//                 userIds = await getUserIds({ managerId: juniorIds, role: 'USER' });
+//                 break;
+
+//             case 'SENIOR_OFFICER':
+//                 const juniorOfficerIds = await getUserIds({ managerId, role: 'JUNIOR_OFFICER' });
+//                 userIds = await getUserIds({ managerId: juniorOfficerIds, role: 'USER' });
+//                 break;
+
+//             case 'JUNIOR_OFFICER':
+//                 userIds = await getUserIds({ managerId, role: 'USER' });
+//                 break;
+
+//             default:
+//                 throw new Error(`Role ${role} is not supported for this endpoint`);
+//         }
+
+//         // Early return if no users found
+//         if (userIds.length === 0) {
+//             return {
+//                 requests: [],
+//                 total: 0,
+//                 page,
+//                 totalPages: 0
+//             };
+//         }
+
+//         // 2. Build the where clause for requests
+//         const where = { 
+//             userId: { in: userIds },
+//             // Add optimization status filter if requested
+//             ...(optimizedOnly && { isOptimized: true })
+//         };
+
+//         // Date filtering
+//         if (startDate && endDate) {
+//             where.date = {
+//                 gte: new Date(startDate),
+//                 lte: new Date(endDate)
+//             };
+//         } else if (startDate) {
+//             where.date = { gte: new Date(startDate) };
+//         } else if (endDate) {
+//             where.date = { lte: new Date(endDate) };
+//         }
+
+//         // Status filtering
+//         if (status && status !== 'ALL') {
+//             where.status = status;
+//         }
+
+//         // 3. Query requests with pagination
+//         const [requests, total] = await Promise.all([
+//             prisma.request.findMany({
+//                 where,
+//                 include: {
+//                     user: {
+//                         select: {
+//                             id: true,
+//                             name: true,
+//                             email: true,
+//                             role: true,
+//                             depot: true,
+//                             department: true,
+//                         },
+//                     },
+//                 },
+//                 orderBy: { createdAt: 'desc' },
+//                 skip,
+//                 take: limit,
+//             }),
+//             prisma.request.count({ where }),
+//         ]);
+
+//         return {
+//             requests,
+//             total,
+//             page,
+//             totalPages: Math.ceil(total / limit),
+//         };
+
+//     } catch (error) {
+//         console.error('Error in getManagerUsersRequests:', error);
+//         throw error;
+//     }
+// };
 export const getManagerRequestData = async (
     managerId,
     role,
@@ -1429,7 +1652,14 @@ export const getManagerRequestData = async (
             totalPages: Math.ceil(total / limit),
         };
     } catch (error) {
+<<<<<<< feature/open-apis
         console.error("Error in getManagerUsersRequests:", error);
         throw error;
     }
 };
+=======
+        console.error('Error in getManagerUsersRequests:', error);
+        throw error;
+    }
+};
+>>>>>>> master
