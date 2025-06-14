@@ -106,28 +106,6 @@ model Request {
   sanctionedTimeFrom           DateTime?
   sanctionedTimeTo             DateTime?
 
-  //Additional fields for the request
- // Track machine information
-  numberOfTrackMachines     Int?
-  
-  // Site supervisor information
-  siteSupervisorName        String?
-  siteSupervisorMobile      String?
-  
-  // Applicant information
-  applicantName             String?
-  applicantMobile           String?
-  
-  // Duration information
-  cautionDurationDays       Int?
-  
-  // Machine clearing information
-  machineBlockClearingStation String?
-  
-  // Power block mast information
-  powerBlockMastFrom        String?
-  powerBlockMastTo          String?
-
   @@index([userId])
   @@index([managerAcceptanceId])
   @@index([adminAcceptanceId])
