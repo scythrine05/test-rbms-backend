@@ -11,15 +11,15 @@ model User {
   id           String         @id @default(uuid())
   name         String
   email        String         @unique
-  password     String
-  depot        String
-  department   String?
-  phone        String?
-  role         Role           @default(USER)
-  managerId    String?
-  location     String
   adminId      String?
   createdAt    DateTime       @default(now())
+  department   String?
+  depot        String
+  location     String
+  managerId    String?
+  password     String
+  phone        String?
+  role         Role           @default(USER)
   otps         Otp[]
   RefreshToken RefreshToken[]
   userRequests Request[]      @relation("UserToRequests")
@@ -33,78 +33,78 @@ model User {
 }
 
 model Request {
-  id                           String     @id @default(uuid())
-  date                         DateTime
-  selectedDepartment           String
-  selectedSection              String
-  stationID                    String?
-  missionBlock                 String
-  workType                     String
-  activity                     String?
-  freshCautionRequired         Boolean?   @default(false)
-  freshCautionSpeed            Int?
-  freshCautionLocationFrom     String?
-  freshCautionLocationTo       String?
-  adjacentLinesAffected        String?
-  workLocationFrom             String?
-  workLocationTo               String?
-  demandTimeFrom               DateTime
-  demandTimeTo                 DateTime
-  sigDisconnection             Boolean?   @default(false)
-  elementarySection            String?
-  elementarySectionTo          String?
-  sigElementarySectionFrom     String?
-  sigElementarySectionTo       String?
-  repercussions                String?
-  trdWorkLocation              String?
-  requestremarks               String?
-  createdAt                    DateTime   @default(now())
-  status                       String?    @default("PENDING")
-  selectedDepo                 String?
-  sigResponse                  String?    @default("yes")
-  ohDisconnection              String?
-  oheDisconnection             String?
-  oheResponse                  String?    @default("yes")
-  corridorType                 String?    @default("corridor")
-  corridorTypeSelection        String?
-  sigActionsNeeded             Boolean?   @default(true)
-  trdActionsNeeded             Boolean?   @default(true)
-  ManagerResponse              String?
-  sigDisconnectionRequirements String?
-  sntDisconnectionRequirements Json?
-  sntDisconnectionLine         String?
-  sntDisconnectionLineFrom     String?
-  sntDisconnectionLineTo       String?
-  sntDisconnectionAssignTo     String?
-  trdDisconnectionRequirements String?
-  trdDisconnectionAssignTo     String?
-  powerBlockRequirements       Json?
-  powerBlockRequired           Boolean?   @default(false)
-  sntDisconnectionRequired     Boolean?   @default(false)
-  processedLineSections        Json?
-  routeFrom                    String?
-  routeTo                      String?
-  DisconnAcceptance            Acceptance @default(PENDING)
+  id                                String     @id @default(uuid())
+  date                              DateTime
+  selectedDepartment                String
+  selectedSection                   String
+  stationID                         String?
+  missionBlock                      String
+  workType                          String
+  activity                          String?
+  freshCautionRequired              Boolean?   @default(false)
+  freshCautionSpeed                 Int?
+  freshCautionLocationFrom          String?
+  freshCautionLocationTo            String?
+  adjacentLinesAffected             String?
+  workLocationFrom                  String?
+  workLocationTo                    String?
+  demandTimeFrom                    DateTime
+  demandTimeTo                      DateTime
+  sigDisconnection                  Boolean?   @default(false)
+  elementarySection                 String?
+  elementarySectionTo               String?
+  sigElementarySectionFrom          String?
+  sigElementarySectionTo            String?
+  repercussions                     String?
+  trdWorkLocation                   String?
+  requestremarks                    String?
+  createdAt                         DateTime   @default(now())
+  status                            String?    @default("PENDING")
+  selectedDepo                      String?
+  sigResponse                       String?    @default("yes")
+  ohDisconnection                   String?
+  oheDisconnection                  String?
+  oheResponse                       String?    @default("yes")
+  corridorType                      String?    @default("corridor")
+  corridorTypeSelection             String?
+  sigActionsNeeded                  Boolean?   @default(true)
+  trdActionsNeeded                  Boolean?   @default(true)
+  ManagerResponse                   String?
+  sigDisconnectionRequirements      String?
+  sntDisconnectionRequirements      Json?
+  sntDisconnectionLine              String?
+  sntDisconnectionLineFrom          String?
+  sntDisconnectionLineTo            String?
+  trdDisconnectionRequirements      String?
+  powerBlockRequirements            Json?
+  powerBlockRequired                Boolean?   @default(false)
+  sntDisconnectionRequired          Boolean?   @default(false)
+  processedLineSections             Json?
+  routeFrom                         String?
+  routeTo                           String?
+  DisconnAcceptance                 Acceptance @default(PENDING)
+  userId                            String?
+  managerAcceptanceId               String?
+  managerAcceptance                 Boolean    @default(false)
+  adminAcceptanceId                 String?
+  adminAcceptance                   Boolean    @default(true)
+  adminRequestStatus                String?    @default("PENDING")
+  availedResponse                   String?
   disconnectionRequestRejectRemarks String?
-  userId                       String?
-  managerAcceptanceId          String?
-  managerAcceptance            Boolean    @default(false)
-  adminAcceptanceId            String?
-  adminAcceptance              Boolean    @default(true)
-  user                         User?      @relation("UserToRequests", fields: [userId], references: [id])
-  availedResponse              String?
-  reasonForReject              String?
-  userStatus                   String?
-  remarkByManager              String?   
-  userResponse                 String?
-  isSanctioned                 Boolean?   @default(false)
-  adminRequestStatus           String?    @default("PENDING")
-  optimizeStatus               Boolean    @default(false)
-  workNature                   String?
-  optimizeTimeFrom             DateTime?
-  optimizeTimeTo               DateTime?
-  sanctionedTimeFrom           DateTime?
-  sanctionedTimeTo             DateTime?
+  isSanctioned                      Boolean?   @default(false)
+  optimizeStatus                    Boolean    @default(false)
+  optimizeTimeFrom                  DateTime?
+  optimizeTimeTo                    DateTime?
+  reasonForReject                   String?
+  remarkByManager                   String?
+  sanctionedTimeFrom                DateTime?
+  sanctionedTimeTo                  DateTime?
+  sntDisconnectionAssignTo          String?
+  trdDisconnectionAssignTo          String?
+  userResponse                      String?
+  userStatus                        String?
+  workNature                        String?
+  user                              User?      @relation("UserToRequests", fields: [userId], references: [id])
 
   @@index([userId])
   @@index([managerAcceptanceId])
@@ -112,19 +112,19 @@ model Request {
   @@index([createdAt])
 }
 
-model Optimize_Table{
-  id                      String   @id @default(uuid())
-  optimizeTimeFrom        DateTime
-  optimizeTimeTo          DateTime
-  date                    DateTime
-  missionBlock            String
-  otherAffectedLine       String
-  selectedDepartment      String
-  selectedDepo            String
-  selectedLine            String
-  selectedSection         String
-  selectedStream          String
-  isEdited                Boolean?   @default(false)
+model Optimize_Table {
+  id                 String   @id @default(uuid())
+  optimizeTimeFrom   DateTime
+  optimizeTimeTo     DateTime
+  date               DateTime
+  missionBlock       String
+  otherAffectedLine  String
+  selectedDepartment String
+  selectedDepo       String
+  selectedLine       String
+  selectedSection    String
+  selectedStream     String
+  isEdited           Boolean? @default(false)
 }
 
 model Otp {
@@ -158,6 +158,10 @@ enum Role {
   BRANCH_OFFICER
   ADMIN
   SUPER_ADMIN
+  PUNCTUALITY_CONTROLLER
+  DEPT_CONTROLLER
+  DRM
+  HQ
 }
 
 enum Acceptance {
