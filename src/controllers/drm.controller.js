@@ -27,6 +27,7 @@ export const generateReport = async (req, res) => {
 
         return successResponse(res, 200, "Report generated successfully", result);
     } catch (error) {
+        console.log("req.query", error);
         handleError(error, res);
     }
 };

@@ -1,5 +1,5 @@
 // src/controllers/drm.controller.js
-import { generateDrmReport } from "../services/drm.service.js";
+import { generateHqReport } from "../services/hq.service.js";
 import { handleError, successResponse } from "../utils/response.js";
 
 // Generate DRM Report
@@ -17,7 +17,7 @@ export const generateReport = async (req, res) => {
         // const parsedEndDate = endDate ? new Date(endDate) : null;
         // console.log(parsedStartDate,"322",endDate,"++" ,parsedEndDate);
         // Get the report data from the service
-        const result = await generateDrmReport(
+        const result = await generateHqReport(
             startDate,
             endDate,
             locationFilter,

@@ -1,4 +1,4 @@
-// src/services/drm.service.js
+// src/services/hq.service.js
 import prisma from "../prisma/index.js";
 
 // Parse date from DD/MM/YY format and convert to ISO format with correct timezone
@@ -13,11 +13,11 @@ function formatDateForQuery(dateStr) {
     return `${fullYear}-${month}-${day}T18:30:00.000Z`;
 }
 
-// Generate DRM Report based on filters
+// Generate HQ Report based on filters
 export const generateDrmReport = async (
     startDate,
     endDate,
-    majorSection,
+    majorSections,
     departments,
     blockTypes,
 ) => {
@@ -26,10 +26,6 @@ export const generateDrmReport = async (
 
     // Add filters only if they exist
     const filters = [];
-
-    // Always filter for sanctioned and manager-accepted requests
-    // filters.push({ isSanctioned: true });
-    // filters.push({ managerAcceptance: true });
 
     // Add date filter if provided
     if (startDate && endDate) {
@@ -46,28 +42,24 @@ export const generateDrmReport = async (
         }
     }
 
-    // majorSection filter
-    if (majorSection && majorSection.length > 0) {
+    // Add mission block filter if provided (majorSections represents mission blocks)
+    if (majorSections && majorSections.length > 0) {
         filters.push({
             selectedSection: {
-                in: majorSection,
+                in: majorSections,
             },
         });
     }
 
     // Add department filter if provided
-    // Map department values from query params to database values
     if (departments && departments.length > 0) {
         // Map from query params to DB values: Engineering -> ENGG, ST -> S&T
         const mappedDepartments = departments.map((dept) => {
             if (dept === "Engineering") return "ENGG";
             if (dept === "ST") return "S&T";
-            if (dept === "TRD") return "TRD";
             return dept; // Keep other values as is
         });
 
-        // Corridor Outside Corridor Urgent Block
-        // "TRD" | "S&T" | "ENGG"
         filters.push({
             selectedDepartment: {
                 in: mappedDepartments,
@@ -78,14 +70,12 @@ export const generateDrmReport = async (
     // Add blockType filter if provided
     if (blockTypes && blockTypes.length > 0) {
         // Map blockType values from query params to database values
-        // Urgent Block , Corridor , non-corridor
         const mappedBlockTypes = blockTypes.map((blockType) => {
             // Apply specific mappings
             if (blockType === "Non-corridor") return "non-corridor";
             if (blockType === "Emergency") return "Urgent Block";
-            if (blockType === "Corridor") return "Corridor";
-            if (blockType === "Mega") return "Mega";
-            return blockType;
+            if (blockType === "Corridor") return "corridor";
+            return blockType; // Keep other values as is
         });
 
         filters.push({
@@ -98,12 +88,15 @@ export const generateDrmReport = async (
     // Combine all filters with AND
     whereClause.AND = filters;
 
-    console.log("Applied filters:", JSON.stringify(whereClause, null, 2));
+    // Safely log the filter conditions without assuming specific index positions
+    console.log("Applied HQ filters:", JSON.stringify(whereClause, null, 2));
 
+    // Get detailed data for each request matching the criteria to calculate metrics
     const requestDetails = await prisma.request.findMany({
         where: whereClause,
         select: {
             id: true,
+            missionBlock: true,
             selectedDepartment: true,
             corridorType: true,
             demandTimeFrom: true,
@@ -119,20 +112,22 @@ export const generateDrmReport = async (
             gte: today,
         },
         selectedSection: {
-            in: majorSection,
+            in: majorSections,
         },
     };
 
+    // Get additional details for reporting purposes - using the same filter as the main query
     const requestDetailsForReport = await prisma.request.findMany({
         where: whereClauseNew,
         orderBy: {
-            date: "asc",
+            date: "asc", // sorted by date, oldest first
         },
         select: {
             id: true,
             date: true,
-            selectedSection: true, // Section
+            missionBlock: true, // Mission Block
             selectedDepartment: true,
+            selectedSection: true,
             demandTimeFrom: true,
             demandTimeTo: true,
             corridorType: true, // Type
@@ -141,11 +136,12 @@ export const generateDrmReport = async (
     });
 
     // Calculate duration for each request in hours
-    // Only include the specified fields: Date, Section, Duration, Type, Status
+    // Include the fields: Date, MissionBlock, Duration, Type, Status
     const detailedData = requestDetailsForReport.map((req) => {
         let durationInHours =
             (new Date(req.demandTimeTo) - new Date(req.demandTimeFrom)) / (1000 * 60 * 60);
         durationInHours = durationInHours < 0 ? durationInHours + 24 : durationInHours;
+
         return {
             id: req.id,
             Date: new Date(req.date).toLocaleDateString(),
@@ -168,7 +164,7 @@ export const generateDrmReport = async (
 
     // Create single metrics object with aggregated values
     const aggregatedMetrics = {
-        Department: locations.length > 0 ? locations.join(", ") : "All",
+        Department: majorSections.join(", "),
         TotalRequests: requestDetails.length,
         Demanded: parseFloat(totalDemanded.toFixed(2)),
         Approved: parseFloat((totalDemanded * 0.9).toFixed(2)), // placeholder: 90%
@@ -179,9 +175,9 @@ export const generateDrmReport = async (
     };
 
     return {
-        // Single aggregated metrics object in an array
+        // Single aggregated metrics object
         pastBlockSummary: [aggregatedMetrics],
-        // Array with the detailed data, containing only specified fields
+        // Array with the detailed data, containing specific fields
         detailedData: detailedData,
     };
 };
