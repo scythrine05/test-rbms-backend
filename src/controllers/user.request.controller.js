@@ -592,10 +592,21 @@ export const acceptRequestByAdmin = async (req, res) => {
 //   }
 //     }
 // };
+// export const approveAllPendingRequests = async (req, res) => {
+//     try {
+//         const adminId = req.user.id; // Assuming user ID is available from auth middleware
+//         const result = await requestService.approveAllPendingRequests(adminId);
+//         return successResponse(res, 200, "All pending requests approved successfully", result);
+//     } catch (error) {
+//         handleError(error, res);
+//     }
+// };
+
 export const approveAllPendingRequests = async (req, res) => {
     try {
         const adminId = req.user.id; // Assuming user ID is available from auth middleware
-        const result = await requestService.approveAllPendingRequests(adminId);
+        const { startDate, endDate } = req.body;
+        const result = await requestService.approveAllPendingRequests(adminId,startDate,endDate);
         return successResponse(res, 200, "All pending requests approved successfully", result);
     } catch (error) {
         handleError(error, res);
