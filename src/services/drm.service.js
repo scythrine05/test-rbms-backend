@@ -97,6 +97,7 @@ export const generateDrmReport = async (
         select: {
             id: true,
             missionBlock: true,
+            selectedSection: true,
             selectedDepartment: true,
             corridorType: true,
             demandTimeFrom: true,
@@ -154,29 +155,89 @@ export const generateDrmReport = async (
 
     // Calculate aggregate metrics for all requests without grouping
     // Calculate total demanded hours
-    let totalDemanded = 0;
+    // let totalDemanded = 0;
+    // requestDetails.forEach((req) => {
+    //     let durationInHours =
+    //         (new Date(req.demandTimeTo) - new Date(req.demandTimeFrom)) / (1000 * 60 * 60);
+    //     durationInHours = durationInHours < 0 ? durationInHours + 24 : durationInHours;
+    //     totalDemanded += durationInHours;
+    // });
+
+    // // Create single metrics object with aggregated values
+    // const aggregatedMetrics = {
+    //     Department: majorSections.join(", "),
+    //     TotalRequests: requestDetails.length,
+    //     Demanded: parseFloat(totalDemanded.toFixed(2)),
+    //     Approved: parseFloat((totalDemanded * 0.9).toFixed(2)), // placeholder: 90%
+    //     Granted: parseFloat((totalDemanded * 0.8).toFixed(2)), // placeholder: 80%
+    //     PercentGranted: 80, // placeholder
+    //     Availed: parseFloat((totalDemanded * 0.7).toFixed(2)), // placeholder: 70%
+    //     PercentAvailed: 70, // placeholder
+    // };
+
+    const sectionDurations = {}; // { majorSection: totalDuration }
+    console.log(requestDetails.length);
+
+    // Ensure all majorSections are represented, even if no data
+    // Create a set of all expected major sections
+    const allMajorSections = new Set(majorSections); // assuming majorSections is an array parameter
+
     requestDetails.forEach((req) => {
+        const section = req.majorSection; // or req.majorsection depending on your data
         let durationInHours =
             (new Date(req.demandTimeTo) - new Date(req.demandTimeFrom)) / (1000 * 60 * 60);
         durationInHours = durationInHours < 0 ? durationInHours + 24 : durationInHours;
-        totalDemanded += durationInHours;
+
+        if (!sectionDurations[section]) {
+            sectionDurations[section] = {
+                totalDemanded: 0,
+                totalRequests: 0,
+            };
+        }
+
+        sectionDurations[section].totalDemanded += durationInHours;
+        sectionDurations[section].totalRequests += 1;
+    });
+    console.log(requestDetails.length);
+
+    // Create summary per majorSection and add a total summary
+    const pastBlockSummary = [];
+    // First, add entries for all expected major sections
+    allMajorSections.forEach((section) => {
+        // Count requests for this section
+        const sectionRequests = requestDetails.filter((req) => req.selectedSection === section);
+        const totalRequests = sectionRequests.length;
+
+        // Calculate total demanded hours for this section
+        let totalDemanded = 0;
+        sectionRequests.forEach((req) => {
+            let durationInHours =
+                (new Date(req.demandTimeTo) - new Date(req.demandTimeFrom)) / (1000 * 60 * 60);
+            durationInHours = durationInHours < 0 ? durationInHours + 24 : durationInHours;
+            totalDemanded += durationInHours;
+        });
+
+        totalDemanded = parseFloat(totalDemanded.toFixed(2));
+        const approved = parseFloat((totalDemanded * 0.9).toFixed(2)); // placeholder: 90%
+        const granted = parseFloat((totalDemanded * 0.8).toFixed(2)); // placeholder: 80%
+        const availed = parseFloat((totalDemanded * 0.7).toFixed(2)); // placeholder: 70%
+
+        // Create summary object for this section
+        pastBlockSummary.push({
+            Department: section,
+            TotalRequests: totalRequests,
+            Demanded: totalDemanded,
+            Approved: approved,
+            Granted: granted,
+            PercentGranted: totalDemanded > 0 ? 80 : 0, // placeholder
+            Availed: availed,
+            PercentAvailed: totalDemanded > 0 ? 70 : 0, // placeholder
+        });
     });
 
-    // Create single metrics object with aggregated values
-    const aggregatedMetrics = {
-        Department: majorSections.join(", "),
-        TotalRequests: requestDetails.length,
-        Demanded: parseFloat(totalDemanded.toFixed(2)),
-        Approved: parseFloat((totalDemanded * 0.9).toFixed(2)), // placeholder: 90%
-        Granted: parseFloat((totalDemanded * 0.8).toFixed(2)), // placeholder: 80%
-        PercentGranted: 80, // placeholder
-        Availed: parseFloat((totalDemanded * 0.7).toFixed(2)), // placeholder: 70%
-        PercentAvailed: 70, // placeholder
-    };
-
     return {
-        // Single aggregated metrics object
-        pastBlockSummary: [aggregatedMetrics],
+        // Single aggregated metrics object with Department-wise data
+        pastBlockSummary: pastBlockSummary,
         // Array with the detailed data, containing specific fields
         detailedData: detailedData,
     };
