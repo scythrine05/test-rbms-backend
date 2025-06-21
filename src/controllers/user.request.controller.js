@@ -5,7 +5,7 @@ import { handleError, successResponse } from "../utils/response.js";
 export const createRequest = async (req, res) => {
     try {
         const data = requestValidation.createRequestSchema.parse(req.body);
-        const request = await requestService.createRequest(data, req.user.id);
+        const request = await requestService.createRequest(data, req.user.id,req.user.location);
         return successResponse(res, 201, "Request created successfully", request);
     } catch (error) {
         handleError(error, res);
