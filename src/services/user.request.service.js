@@ -156,8 +156,20 @@ export const createRequest = async (data, userId, divisionCode) => {
     // 4. Fixed "K"
     const fixedChar = "K";
 
-    // 5. Use division code exactly as provided (default to "GEN")
-    const finalDivisionCode = divisionCode?.toUpperCase().slice(0, 3) || "GEN";
+    // 5. Map division code to corresponding letter
+    const divisionMap = {
+        "MAS": "A",
+        "MDU": "B",
+        "SA": "C",
+        "PGT": "D",
+        "TPJ": "E",
+        "TVC": "F"
+    };
+    
+    // Get the base division code (first 3 characters)
+    const baseDivisionCode = divisionCode?.toUpperCase().slice(0, 3) || "GEN";
+    // Get the mapped letter or use original if not in map
+    const divisionLetter = divisionMap[baseDivisionCode] || baseDivisionCode.slice(0, 1);
 
     // 6. Calculate date range for current month
     const startOfMonth = new Date(requestDate.getFullYear(), requestDate.getMonth(), 1);
@@ -169,18 +181,18 @@ export const createRequest = async (data, userId, divisionCode) => {
             createdAt: { lt: now }, // Only check requests created before this one
             date: { gte: startOfMonth, lt: endOfMonth },
             divisionId: { 
-                startsWith: `${yearPart}${monthChar}${fixedChar}${finalDivisionCode}` 
+                startsWith: `${yearPart}${monthChar}${fixedChar}${divisionLetter}` 
             }
         },
         orderBy: { createdAt: "desc" } // Get the newest one
     });
 
-    // 8. Determine increment number
-    const lastIncrement = lastRequest?.divisionId?.slice(-4) || "0000";
-    const incrementPart = (parseInt(lastIncrement) + 1).toString().padStart(4, "0");
+    // 8. Determine increment number (now 5 digits)
+    const lastIncrement = lastRequest?.divisionId?.slice(-5) || "00000";
+    const incrementPart = (parseInt(lastIncrement) + 1).toString().padStart(5, "0");
 
-    // 9. Generate final ID (format: YYMonthKDivision####)
-    const divisionId = `${yearPart}${monthChar}${fixedChar}${finalDivisionCode}${incrementPart}`;
+    // 9. Generate final ID (format: YYMonthKDivisionLetter#####)
+    const divisionId = `${yearPart}${monthChar}${fixedChar}${divisionLetter}${incrementPart}`;
 
     // 10. Create the request with generated ID
     return await prisma.request.create({
