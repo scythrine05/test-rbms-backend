@@ -1,7 +1,82 @@
 import prisma from "../prisma/index.js";
 
-export const createRequest = async (data, userId) => {
-    // Create a list of allowed fields from the Prisma schema
+// export const createRequest = async (data, userId,location) => {
+//     // Create a list of allowed fields from the Prisma schema
+//     const allowedFields = [
+//         "adminAcceptance",
+//         "date",
+//         "selectedDepartment",
+//         "selectedSection",
+//         "stationID",
+//         "missionBlock",
+//         "workType",
+//         "activity",
+//         "freshCautionRequired",
+//         "freshCautionSpeed",
+//         "freshCautionLocationFrom",
+//         "freshCautionLocationTo",
+//         "adjacentLinesAffected",
+//         "workLocationFrom",
+//         "workLocationTo",
+//         "demandTimeFrom",
+//         "demandTimeTo",
+//         "sigDisconnection",
+//         "elementarySection",
+//         "elementarySectionTo",
+//         "sigElementarySectionFrom",
+//         "sigElementarySectionTo",
+//         "repercussions",
+//         "trdWorkLocation",
+//         "requestremarks",
+//         "status",
+//         "selectedDepo",
+//         "sigResponse",
+//         "ohDisconnection",
+//         "oheDisconnection",
+//         "oheResponse",
+//         "corridorType",
+//         "corridorTypeSelection",
+//         "sigActionsNeeded",
+//         "trdActionsNeeded",
+//         "ManagerResponse",
+//         "sigDisconnectionRequirements",
+//         "sntDisconnectionRequirements",
+//         "sntDisconnectionLine",
+//         "sntDisconnectionLineFrom",
+//         "sntDisconnectionLineTo",
+//         "trdDisconnectionRequirements",
+//         "powerBlockRequirements",
+//         "powerBlockRequired",
+//         "sntDisconnectionRequired",
+//         "processedLineSections",
+//         "routeFrom",
+//         "routeTo",
+//         "DisconnAcceptance",
+//         "managerAcceptanceId",
+//         "managerAcceptance",
+//         "adminAcceptanceId",
+//         "sntDisconnectionAssignTo",
+//         "trdDisconnectionAssignTo",
+//         "workNature",
+//     ];
+
+//     // Filter out any fields that aren't in the allowedFields list
+//     const filteredData = Object.fromEntries(
+//         Object.entries(data).filter(([key]) => allowedFields.includes(key)),
+//     );
+
+//     return await prisma.request.create({
+//         data: {
+//             ...filteredData,
+//             userId,
+//             status: "PENDING",
+//         },
+//     });
+// };
+
+
+export const createRequest = async (data, userId, divisionCode) => {
+    // List of allowed fields from Prisma schema
     const allowedFields = [
         "adminAcceptance",
         "date",
@@ -55,21 +130,78 @@ export const createRequest = async (data, userId) => {
         "managerAcceptanceId",
         "managerAcceptance",
         "adminAcceptanceId",
+        "adminAcceptance",
         "sntDisconnectionAssignTo",
         "trdDisconnectionAssignTo",
         "workNature",
     ];
 
-    // Filter out any fields that aren't in the allowedFields list
+    // Filter out any fields not in allowedFields
     const filteredData = Object.fromEntries(
         Object.entries(data).filter(([key]) => allowedFields.includes(key)),
     );
 
+    // 1. Use the exact date from frontend request
+    const requestDate = new Date(data.date);
+    const now = new Date(); // Current timestamp for createdAt
+
+    // 2. Get last 2 digits of year
+    const yearPart = requestDate.getFullYear().toString().slice(-2);
+
+    // 3. Convert month to letter (A=Jan, B=Feb, etc., skipping I)
+    const month = requestDate.getMonth();
+    let monthChar = String.fromCharCode(65 + month);
+    if (month >= 8) monthChar = String.fromCharCode(66 + month); // Skip I
+
+    // 4. Fixed "K"
+    const fixedChar = "K";
+
+    // 5. Map division code to corresponding letter
+    const divisionMap = {
+        "MAS": "A",
+        "MDU": "B",
+        "SA": "C",
+        "PGT": "D",
+        "TPJ": "E",
+        "TVC": "F"
+    };
+    
+    // Get the base division code (first 3 characters)
+    const baseDivisionCode = divisionCode?.toUpperCase().slice(0, 3) || "GEN";
+    // Get the mapped letter or use original if not in map
+    const divisionLetter = divisionMap[baseDivisionCode] || baseDivisionCode.slice(0, 1);
+
+    // 6. Calculate date range for current month
+    const startOfMonth = new Date(requestDate.getFullYear(), requestDate.getMonth(), 1);
+    const endOfMonth = new Date(requestDate.getFullYear(), requestDate.getMonth() + 1, 1);
+
+    // 7. Find most recent request for this month+division
+    const lastRequest = await prisma.request.findFirst({
+        where: {
+            createdAt: { lt: now }, // Only check requests created before this one
+            date: { gte: startOfMonth, lt: endOfMonth },
+            divisionId: { 
+                startsWith: `${yearPart}${monthChar}${fixedChar}${divisionLetter}` 
+            }
+        },
+        orderBy: { createdAt: "desc" } // Get the newest one
+    });
+
+    // 8. Determine increment number (now 5 digits)
+    const lastIncrement = lastRequest?.divisionId?.slice(-5) || "00000";
+    const incrementPart = (parseInt(lastIncrement) + 1).toString().padStart(5, "0");
+
+    // 9. Generate final ID (format: YYMonthKDivisionLetter#####)
+    const divisionId = `${yearPart}${monthChar}${fixedChar}${divisionLetter}${incrementPart}`;
+
+    // 10. Create the request with generated ID
     return await prisma.request.create({
-        data: {
-            ...filteredData,
-            userId,
-            status: "PENDING",
+        data: { 
+            ...filteredData, 
+            userId, 
+            status: "PENDING", 
+            divisionId,
+            createdAt: now // Explicit set creation time
         },
     });
 };
