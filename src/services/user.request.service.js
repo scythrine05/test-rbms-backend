@@ -1089,32 +1089,40 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
     };
 };
 
-export const approveAllPendingRequests = async (adminId) => {
+export const approveAllPendingRequests = async (adminId, startDate, endDate) => {
     return await prisma.$transaction(async (tx) => {
+        // Build the base where clause
+        const whereClause = {
+            adminRequestStatus: "PENDING",
+        };
+
+        // Add date range filter if provided
+        if (startDate && endDate) {
+            whereClause.date = {
+                gte: startDate ? new Date(startDate + "T00:00:00.000Z") : undefined,
+                lte: endDate ? new Date(endDate + "T23:59:59.999Z") : undefined,
+            };
+        }
+
         // First get all pending requests that will be updated
         const pendingRequests = await tx.request.findMany({
-            where: {
-                adminRequestStatus: "PENDING",
-            },
+            where: whereClause,
             select: {
                 id: true,
             },
         });
 
         if (pendingRequests.length === 0) {
-            throw new Error("No pending requests found");
+            throw new Error("No pending requests found in the specified date range");
         }
 
-        // Update all pending requests - removed updatedAt
+        // Update all matching pending requests
         await tx.request.updateMany({
-            where: {
-                adminRequestStatus: "PENDING",
-            },
+            where: whereClause,
             data: {
                 adminRequestStatus: "ACCEPTED",
                 adminAcceptance: true,
                 adminAcceptanceId: adminId,
-                // Removed: updatedAt: new Date(),
             },
         });
 
@@ -1124,6 +1132,43 @@ export const approveAllPendingRequests = async (adminId) => {
         };
     });
 };
+
+
+// export const approveAllPendingRequests = async (adminId) => {
+//     return await prisma.$transaction(async (tx) => {
+//         // First get all pending requests that will be updated
+//         const pendingRequests = await tx.request.findMany({
+//             where: {
+//                 adminRequestStatus: "PENDING",
+//             },
+//             select: {
+//                 id: true,
+//             },
+//         });
+
+//         if (pendingRequests.length === 0) {
+//             throw new Error("No pending requests found");
+//         }
+
+//         // Update all pending requests - removed updatedAt
+//         await tx.request.updateMany({
+//             where: {
+//                 adminRequestStatus: "PENDING",
+//             },
+//             data: {
+//                 adminRequestStatus: "ACCEPTED",
+//                 adminAcceptance: true,
+//                 adminAcceptanceId: adminId,
+//                 // Removed: updatedAt: new Date(),
+//             },
+//         });
+
+//         return {
+//             count: pendingRequests.length,
+//             requestIds: pendingRequests.map((req) => req.id),
+//         };
+//     });
+// };
 
 // export const saveOptimizedData = async (optimizedData) => {
 //     try {
