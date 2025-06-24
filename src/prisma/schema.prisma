@@ -103,7 +103,7 @@ model Request {
   AvailedTimeFrom                   DateTime?
   AvailedTimeTo                     DateTime?
   availedRemarks                    String?
-  sntDisconnectionAssignTo          String?
+   sntDisconnectionAssignTo          String?
   trdDisconnectionAssignTo          String?
   userResponse                      String?
   userStatus                        String?
