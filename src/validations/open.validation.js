@@ -6,6 +6,12 @@ export const getSanctionedRequestsSchema = z.object({
 });
 
 export const patchSanctionedRequestSchema = z.object({
+    // ID remains in query params
     id: z.string().min(1, "id is required"),
     availed: z.boolean({ required_error: "availed is required" }),
+    // New fields for availed=true case
+    availedTimeFrom: z.string().optional(),
+    availedTimeTo: z.string().optional(),
+    // New field for availed=false case
+    availedRemarks: z.string().optional(),
 });
