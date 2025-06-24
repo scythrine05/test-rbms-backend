@@ -14,4 +14,5 @@ export const patchSanctionedRequestSchema = z.object({
     availedTimeTo: z.string().optional(),
     // New field for availed=false case
     availedRemarks: z.string().optional(),
+    
 });
