@@ -100,6 +100,9 @@ model Request {
   remarkByManager                   String?
   sanctionedTimeFrom                DateTime?
   sanctionedTimeTo                  DateTime?
+  AvailedTimeFrom                   DateTime?
+  AvailedTimeTo                     DateTime?
+  availedRemarks                    String?
   sntDisconnectionAssignTo          String?
   trdDisconnectionAssignTo          String?
   userResponse                      String?
