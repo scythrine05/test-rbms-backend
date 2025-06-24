@@ -14,6 +14,7 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
         });
     }
 
+    
     return await prisma.request.findMany({
         where,
         select: {
