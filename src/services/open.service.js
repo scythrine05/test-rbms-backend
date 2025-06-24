@@ -58,7 +58,7 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
     });
 };
 
-export const updateSanctionedRequestAvailed = async (id, availedResponseValue) => {
+export const updateSanctionedRequestAvailed = async (id, availed, additionalData) => {
     const existingRequest = await prisma.request.findUnique({
         where: { id },
         select: {
@@ -74,18 +74,71 @@ export const updateSanctionedRequestAvailed = async (id, availedResponseValue) =
         throw new Error("Cannot update availedResponse for an unsanctioned request");
     }
 
+    // Prepare update data
+    const updateData = {
+        availedResponse: String(availed),
+    };
+
+    // Handle availed=true case
+    if (availed === true) {
+        updateData.AvailedTimeFrom = additionalData.availedTimeFrom 
+            ? new Date(additionalData.availedTimeFrom) 
+            : null;
+        updateData.AvailedTimeTo = additionalData.availedTimeTo 
+            ? new Date(additionalData.availedTimeTo) 
+            : null;
+        updateData.availedRemarks = null; // Clear remarks if availed is true
+    } 
+    // Handle availed=false case
+    else {
+        updateData.availedRemarks = additionalData.availedRemarks || null;
+        updateData.AvailedTimeFrom = null; // Clear times if availed is false
+        updateData.AvailedTimeTo = null;
+    }
+
     const updatedRequest = await prisma.request.update({
         where: { id },
-        data: {
-            availedResponse: String(availedResponseValue),
-        },
+        data: updateData,
         select: {
             id: true,
             availedResponse: true,
-            sanctionedTimeFrom: true,
-            sanctionedTimeTo: true,
+            AvailedTimeFrom: true,
+            AvailedTimeTo: true,
+            availedRemarks: true,
         },
     });
 
     return updatedRequest;
 };
+
+// export const updateSanctionedRequestAvailed = async (id, availedResponseValue) => {
+//     const existingRequest = await prisma.request.findUnique({
+//         where: { id },
+//         select: {
+//             isSanctioned: true,
+//         },
+//     });
+
+//     if (!existingRequest) {
+//         throw new Error("Request not found");
+//     }
+
+//     if (!existingRequest.isSanctioned) {
+//         throw new Error("Cannot update availedResponse for an unsanctioned request");
+//     }
+
+//     const updatedRequest = await prisma.request.update({
+//         where: { id },
+//         data: {
+//             availedResponse: String(availedResponseValue),
+//         },
+//         select: {
+//             id: true,
+//             availedResponse: true,
+//             sanctionedTimeFrom: true,
+//             sanctionedTimeTo: true,
+//         },
+//     });
+
+//     return updatedRequest;
+// };
