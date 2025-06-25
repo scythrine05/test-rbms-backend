@@ -107,6 +107,7 @@ model Request {
    sntDisconnectionAssignTo          String?
   trdDisconnectionAssignTo          String?
   userResponse                      String?
+  userAcceptanceForSanction         Boolean    @default(false)
   userStatus                        String?
   workNature                        String?
   user                              User?      @relation("UserToRequests", fields: [userId], references: [id])
