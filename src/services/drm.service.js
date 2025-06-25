@@ -103,6 +103,11 @@ export const generateDrmReport = async (
             demandTimeFrom: true,
             demandTimeTo: true,
             status: true,
+            sanctionedTimeFrom: true,
+            sanctionedTimeTo: true,
+            AvailedTimeFrom: true,
+            AvailedTimeTo: true,
+            isSanctioned: true,
         },
     });
 
@@ -133,6 +138,11 @@ export const generateDrmReport = async (
             demandTimeTo: true,
             corridorType: true, // Type
             status: true, // Status
+            sanctionedTimeFrom: true,
+            sanctionedTimeTo: true,
+            AvailedTimeFrom: true,
+            AvailedTimeTo: true,
+            isSanctioned: true,
         },
     });
 
@@ -210,28 +220,65 @@ export const generateDrmReport = async (
 
         // Calculate total demanded hours for this section
         let totalDemanded = 0;
+        let totalSanctioned = 0;
+        let totalAvailed = 0;
+
         sectionRequests.forEach((req) => {
-            let durationInHours =
+            // Calculate demanded hours
+            let demandDurationInHours =
                 (new Date(req.demandTimeTo) - new Date(req.demandTimeFrom)) / (1000 * 60 * 60);
-            durationInHours = durationInHours < 0 ? durationInHours + 24 : durationInHours;
-            totalDemanded += durationInHours;
+            demandDurationInHours =
+                demandDurationInHours < 0 ? demandDurationInHours + 24 : demandDurationInHours;
+            totalDemanded += demandDurationInHours;
+
+            // Calculate sanctioned hours if available
+            if (req.isSanctioned && req.sanctionedTimeFrom && req.sanctionedTimeTo) {
+                let sanctionedDurationInHours =
+                    (new Date(req.sanctionedTimeTo) - new Date(req.sanctionedTimeFrom)) /
+                    (1000 * 60 * 60);
+                sanctionedDurationInHours =
+                    sanctionedDurationInHours < 0
+                        ? sanctionedDurationInHours + 24
+                        : sanctionedDurationInHours;
+                totalSanctioned += sanctionedDurationInHours;
+            }
+
+            // Calculate availed hours if available
+            if (req.AvailedTimeFrom && req.AvailedTimeTo) {
+                let availedDurationInHours =
+                    (new Date(req.AvailedTimeTo) - new Date(req.AvailedTimeFrom)) /
+                    (1000 * 60 * 60);
+                availedDurationInHours =
+                    availedDurationInHours < 0
+                        ? availedDurationInHours + 24
+                        : availedDurationInHours;
+                totalAvailed += availedDurationInHours;
+            }
         });
 
         totalDemanded = parseFloat(totalDemanded.toFixed(2));
-        const approved = parseFloat((totalDemanded * 0.9).toFixed(2)); // placeholder: 90%
-        const granted = parseFloat((totalDemanded * 0.8).toFixed(2)); // placeholder: 80%
-        const availed = parseFloat((totalDemanded * 0.7).toFixed(2)); // placeholder: 70%
+        totalSanctioned = parseFloat(totalSanctioned.toFixed(2));
+        totalAvailed = parseFloat(totalAvailed.toFixed(2));
+
+        const percentSanctioned =
+            totalDemanded > 0
+                ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2))
+                : 0;
+        const percentAvailed =
+            totalSanctioned > 0
+                ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2))
+                : 0;
 
         // Create summary object for this section
         pastBlockSummary.push({
             Department: section,
             TotalRequests: totalRequests,
             Demanded: totalDemanded,
-            Approved: approved,
-            Granted: granted,
-            PercentGranted: totalDemanded > 0 ? 80 : 0, // placeholder
-            Availed: availed,
-            PercentAvailed: totalDemanded > 0 ? 70 : 0, // placeholder
+            Approved: totalSanctioned,
+            Granted: totalSanctioned,
+            PercentGranted: percentSanctioned,
+            Availed: totalAvailed,
+            PercentAvailed: percentAvailed,
         });
     });
 

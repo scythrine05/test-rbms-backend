@@ -14,11 +14,10 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
         });
     }
 
-    
     return await prisma.request.findMany({
         where,
         select: {
-            id: true,
+            divisionId: true,
             date: true,
             selectedDepartment: true,
             selectedSection: true,
@@ -61,7 +60,7 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
 
 export const updateSanctionedRequestAvailed = async (id, availed, additionalData) => {
     const existingRequest = await prisma.request.findUnique({
-        where: { id },
+        where: { divisionId: id },
         select: {
             isSanctioned: true,
         },
@@ -82,14 +81,14 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
 
     // Handle availed=true case
     if (availed === true) {
-        updateData.AvailedTimeFrom = additionalData.availedTimeFrom 
-            ? new Date(additionalData.availedTimeFrom) 
+        updateData.AvailedTimeFrom = additionalData.availedTimeFrom
+            ? new Date(additionalData.availedTimeFrom)
             : null;
-        updateData.AvailedTimeTo = additionalData.availedTimeTo 
-            ? new Date(additionalData.availedTimeTo) 
+        updateData.AvailedTimeTo = additionalData.availedTimeTo
+            ? new Date(additionalData.availedTimeTo)
             : null;
         updateData.availedRemarks = null; // Clear remarks if availed is true
-    } 
+    }
     // Handle availed=false case
     else {
         updateData.availedRemarks = additionalData.availedRemarks || null;
@@ -98,10 +97,10 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
     }
 
     const updatedRequest = await prisma.request.update({
-        where: { id },
+        where: { divisionId: id },
         data: updateData,
         select: {
-            id: true,
+            divisionId: true,
             availedResponse: true,
             AvailedTimeFrom: true,
             AvailedTimeTo: true,
