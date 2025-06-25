@@ -794,3 +794,25 @@ export const batchAcceptRequests = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
+
+export const userRequestRemarkAccept= async(req,res)=>{
+    try{
+        const {id}=req.params;
+        const request=await requestService.userRequestRemarkAccept(id)
+        return successResponse(res,200,request,"Request accepted Successfully")
+    }
+    catch(error){
+handleError(error,res)
+    }
+}
+export const userRequestRemarkReject= async(req,res)=>{
+    try{
+        const {id}=req.body;
+        const request=await requestService.userRequestRemarkReject(id)
+        return successResponse(res,200,request,"Request accepted Successfully")
+    }
+    catch(error){
+handleError(error,res)
+    }
+}
+
