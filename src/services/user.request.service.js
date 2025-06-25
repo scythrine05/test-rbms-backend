@@ -1858,3 +1858,35 @@ export const getManagerRequestData = async (
         throw error;
     }
 };
+
+
+export const userRequestRemarkAccept =async(id)=>{
+    const request= await prisma.request.findUnique({
+         where: { id },
+    })
+    if (!request) {
+        throw new Error("Request not found");
+    }
+     return await prisma.request.update({
+        where: { id },
+        data: {
+          userAcceptanceForSanction:true
+        },
+    });
+}
+
+
+export const userRequestRemarkReject =async(id)=>{
+    const request= await prisma.request.findUnique({
+         where: { id },
+    })
+    if (!request) {
+        throw new Error("Request not found");
+    }
+     return await prisma.request.update({
+        where: { id: requestId },
+        data: {
+          userAcceptanceForSanction:true
+        },
+    });
+}
