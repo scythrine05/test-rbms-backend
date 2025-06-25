@@ -551,11 +551,11 @@ export const getOtherRequests = async (
         OR: [
             {
                 sntDisconnectionRequired: true,
-                sntDisconnectionAssignTo: userEmail,
+                // sntDisconnectionAssignTo: userEmail,
             },
             {
                 trdActionsNeeded: true,
-                trdDisconnectionAssignTo: userEmail,
+                // trdDisconnectionAssignTo: userEmail,
             },
         ],
         ...(startDate &&
