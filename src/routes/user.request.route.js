@@ -61,6 +61,14 @@ router.post(
   adminMiddleware,
   requestController.saveOptimizedRequests
 );
+
+router.post(
+  "/admin/save-optimized-requests-combined",
+  authenticateToken,
+  adminMiddleware,
+  requestController.saveOptimizedRequestsCombined
+);
+
 router.put(
   "/admin/save-optimized-requests-status",
   authenticateToken,
