@@ -61,6 +61,7 @@ export const createRequestSchema = z.object({
     sigDisconnectionRequirements: z.string().optional(),
     trdDisconnectionRequirements: z.string().optional(),
     trdDisconnectionAssignTo: z.string().optional(),
+    powerBlockDisconnectionAssignTo:z.string().optional(),
 });
 
 export const updateRequestSchema = createRequestSchema.partial();
