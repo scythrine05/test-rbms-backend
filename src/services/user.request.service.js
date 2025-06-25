@@ -1050,24 +1050,91 @@ export const getAdminPendingRequests = async (
 //         },
 //     });
 // };
-export const acceptRequestByManager = async (requestId, managerId, isAccept, remark) => {
+// export const acceptRequestByManager = async (requestId, managerId, isAccept, remark) => {
+//     const request = await prisma.request.findUnique({
+//         where: { id: requestId },
+//     });
+
+//     if (!request) {
+//         throw new Error("Request not found");
+//     }
+
+//     return await prisma.request.update({
+//         where: { id: requestId },
+//         data: {
+//             managerAcceptance: isAccept,
+//             managerAcceptanceId: managerId,
+//             status: isAccept ? "APPROVED" : "REJECTED",
+//             remarkByManager: remark || null, // Store the rejection reason
+//         },
+//     });
+// };
+
+
+export const acceptRequestByManager = async (
+  requestId,
+  managerId,
+  isAccept,
+  remark,
+  mobileView,
+) => {
+  try {
+    /* 1. Check the request exists (no need to pull admin chain anymore) */
     const request = await prisma.request.findUnique({
-        where: { id: requestId },
+      where: { id: requestId },
+      select: { id: true },             // lightweight lookup
     });
 
     if (!request) {
-        throw new Error("Request not found");
+      return { ok: false, status: 404, message: "Request not found" };
     }
 
-    return await prisma.request.update({
-        where: { id: requestId },
-        data: {
-            managerAcceptance: isAccept,
-            managerAcceptanceId: managerId,
-            status: isAccept ? "APPROVED" : "REJECTED",
-            remarkByManager: remark || null, // Store the rejection reason
-        },
+    /* 2. Look up the manager’s own adminId */
+    const managerRecord = await prisma.user.findUnique({
+      where: { id: managerId },
+      select: { adminId: true },
     });
+
+    if (!managerRecord || !managerRecord.adminId) {
+      return { ok: false, status: 404, message: "Manager / admin not found" };
+    }
+
+    const adminId = managerRecord.adminId;
+
+    /* 3. Build the update payload */
+    const data= {
+      managerAcceptance: isAccept,
+      managerAcceptanceId: managerId,
+      status: isAccept ? "APPROVED" : "REJECTED",
+      remarkByManager: remark ?? null,
+      ...(mobileView && {
+        adminRequestStatus: "ACCEPTED",
+        adminAcceptance: true,
+        adminAcceptanceId: adminId,
+      }),
+    };
+
+    /* 4. Persist */
+    const updated = await prisma.request.update({
+      where: { id: requestId },
+      data,
+    });
+
+    return { ok: true, status: 200, data: updated };
+  } catch (error) {
+    console.error("Error in acceptRequestByManager:", error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return {
+        ok: false,
+        status: 500,
+        message: "Database error",
+        code: error.code,
+      };
+    }
+
+    return { ok: false, status: 500, message: "Internal server error" };
+  }
 };
 
 export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
