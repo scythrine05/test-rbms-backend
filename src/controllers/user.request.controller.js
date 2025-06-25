@@ -703,6 +703,92 @@ export const saveOptimizedRequests = async (req, res, next) => {
     }
 };
 
+export const saveOptimizedRequestsCombined = async (req, res, next) => {
+    try {
+        // Validate input
+        if (!req.body?.processedOptimizedData) {
+            return res.status(400).json({
+                success: false,
+                message: "optimizedData is required in request body",
+                data: req.body,
+            });
+        }
+        
+       const { requestIds } = req.body;
+
+        if (!Array.isArray(requestIds)) {
+            return res.status(400).json({
+                success: false,
+                message: "'requestIds' array is missing or invalid",
+            });
+        }
+
+        if (requestIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No valid request IDs provided",
+            });
+        }
+
+        // Call the service function to update the status
+        const requestIdsresult = await requestService.saveOptimizedRequestsStatus(requestIds);
+
+        const optimizedData  = req.body.processedOptimizedData;
+
+        if (!Array.isArray(optimizedData)) {
+            return res.status(400).json({
+                success: false,
+                message: "optimizedData must be an array",
+            });
+        }
+
+        // Validate each item has required fields with proper formats
+        const validationErrors = [];
+        optimizedData.forEach((item, index) => {
+            if (!item.date || !item.demandTimeFrom || !item.demandTimeTo) {
+                validationErrors.push(`Item ${index} is missing required time fields`);
+            }
+
+            // Validate time format (HH:MM)
+            const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+            if (item.demandTimeFrom && !timeRegex.test(item.demandTimeFrom)) {
+                validationErrors.push(
+                    `Item ${index} has invalid demandTimeFrom format (HH:MM required)`,
+                );
+            }
+            if (item.demandTimeTo && !timeRegex.test(item.demandTimeTo)) {
+                validationErrors.push(
+                    `Item ${index} has invalid demandTimeTo format (HH:MM required)`,
+                );
+            }
+
+            // Validate date format (YYYY-MM-DD)
+            if (item.date && !/^\d{4}-\d{2}-\d{2}$/.test(item.date)) {
+                validationErrors.push(
+                    `Item ${index} has invalid date format (YYYY-MM-DD required)`,
+                );
+            }
+        });
+
+        if (validationErrors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation failed",
+                errors: validationErrors,
+            });
+        }
+
+        const processedOptimizedDataresult = await requestService.saveOptimizedData(optimizedData);
+        res.status(200).json({requestIdsresult, processedOptimizedDataresult});
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Failed to save optimized requests",
+        });
+    }
+};
+
 export const getUsersByAdminId = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
