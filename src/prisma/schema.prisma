@@ -104,8 +104,9 @@ model Request {
   AvailedTimeFrom                   DateTime?
   AvailedTimeTo                     DateTime?
   availedRemarks                    String?
-   sntDisconnectionAssignTo          String?
+  sntDisconnectionAssignTo          String?
   trdDisconnectionAssignTo          String?
+  powerBlockDisconnectionAssignTo   String?
   userResponse                      String?
   userAcceptanceForSanction         Boolean    @default(false)
   userStatus                        String?
