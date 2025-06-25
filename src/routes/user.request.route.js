@@ -4,6 +4,11 @@ import { adminMiddleware, authenticateToken, managerMiddleware } from "../middle
 
 const router = express.Router();
 
+
+router.put("/accept/:id",authenticateToken,requestController.userRequestRemarkAccept)
+router.put("/user-request/reject/:id",authenticateToken,requestController.userRequestRemarkReject)
+
+
 // User routes
 router.post("/", authenticateToken, requestController.createRequest);
 router.get("/user", authenticateToken, requestController.getUserRequests);
