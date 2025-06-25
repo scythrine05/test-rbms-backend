@@ -176,7 +176,15 @@ function formatDateForQuery(dateStr) {
 //         detailedData: detailedData,
 //     };
 // };
-export const generateHqReport = async (startDate, endDate, location, departments, blockTypes, majorSections) => {
+
+export const generateHqReport = async (
+    startDate,
+    endDate,
+    location,
+    departments,
+    blockTypes,
+    majorSections,
+) => {
     const whereClause = {};
     const filters = [];
 
@@ -249,7 +257,7 @@ export const generateHqReport = async (startDate, endDate, location, departments
 
     console.log("Applied filters:", JSON.stringify(whereClause, null, 2));
 
-    // 📊 Summary data (all dates)
+    // 📊 Summary data - update the query to include required fields
     const requestDetails = await prisma.request.findMany({
         where: whereClause,
         select: {
@@ -259,6 +267,11 @@ export const generateHqReport = async (startDate, endDate, location, departments
             demandTimeFrom: true,
             demandTimeTo: true,
             status: true,
+            sanctionedTimeFrom: true,
+            sanctionedTimeTo: true,
+            AvailedTimeFrom: true,
+            AvailedTimeTo: true,
+            isSanctioned: true,
         },
     });
 
@@ -267,12 +280,10 @@ export const generateHqReport = async (startDate, endDate, location, departments
     today.setHours(0, 0, 0, 0);
 
     const whereClauseNew = {
-        AND: [
-            ...filters,
-        ],
+        AND: [...filters],
     };
 
-    // 📋 Detailed report (future requests only)
+    // 📋 Detailed report - update the query to include required fields
     const requestDetailsForReport = await prisma.request.findMany({
         where: whereClauseNew,
         orderBy: {
@@ -287,6 +298,11 @@ export const generateHqReport = async (startDate, endDate, location, departments
             demandTimeTo: true,
             corridorType: true,
             status: true,
+            sanctionedTimeFrom: true,
+            sanctionedTimeTo: true,
+            AvailedTimeFrom: true,
+            AvailedTimeTo: true,
+            isSanctioned: true,
         },
     });
 
@@ -304,24 +320,61 @@ export const generateHqReport = async (startDate, endDate, location, departments
         };
     });
 
-    // 🧮 Aggregated metrics
+    // 🧮 Calculate actual metrics
     let totalDemanded = 0;
+    let totalSanctioned = 0;
+    let totalAvailed = 0;
+
     requestDetails.forEach((req) => {
-        let durationInHours =
+        // Calculate demanded hours
+        let demandDurationInHours =
             (new Date(req.demandTimeTo) - new Date(req.demandTimeFrom)) / (1000 * 60 * 60);
-        durationInHours = durationInHours < 0 ? durationInHours + 24 : durationInHours;
-        totalDemanded += durationInHours;
+        demandDurationInHours =
+            demandDurationInHours < 0 ? demandDurationInHours + 24 : demandDurationInHours;
+        totalDemanded += demandDurationInHours;
+
+        // Calculate sanctioned hours (if sanctioned)
+        if (req.isSanctioned && req.sanctionedTimeFrom && req.sanctionedTimeTo) {
+            let sanctionedDurationInHours =
+                (new Date(req.sanctionedTimeTo) - new Date(req.sanctionedTimeFrom)) /
+                (1000 * 60 * 60);
+            sanctionedDurationInHours =
+                sanctionedDurationInHours < 0
+                    ? sanctionedDurationInHours + 24
+                    : sanctionedDurationInHours;
+            totalSanctioned += sanctionedDurationInHours;
+        }
+
+        // Calculate availed hours (if available)
+        if (req.AvailedTimeFrom && req.AvailedTimeTo) {
+            let availedDurationInHours =
+                (new Date(req.AvailedTimeTo) - new Date(req.AvailedTimeFrom)) / (1000 * 60 * 60);
+            availedDurationInHours =
+                availedDurationInHours < 0 ? availedDurationInHours + 24 : availedDurationInHours;
+            totalAvailed += availedDurationInHours;
+        }
     });
 
+    totalDemanded = parseFloat(totalDemanded.toFixed(2));
+    totalSanctioned = parseFloat(totalSanctioned.toFixed(2));
+    totalAvailed = parseFloat(totalAvailed.toFixed(2));
+
+    // Calculate percentages
+    const percentSanctioned =
+        totalDemanded > 0 ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2)) : 0;
+
+    const percentAvailed =
+        totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
+
     const aggregatedMetrics = {
-        Department: location,
+        Department: location || "All Locations",
         TotalRequests: requestDetails.length,
-        Demanded: parseFloat(totalDemanded.toFixed(2)),
-        Approved: parseFloat((totalDemanded * 0.9).toFixed(2)),
-        Granted: parseFloat((totalDemanded * 0.8).toFixed(2)),
-        PercentGranted: 80,
-        Availed: parseFloat((totalDemanded * 0.7).toFixed(2)),
-        PercentAvailed: 70,
+        Demanded: totalDemanded,
+        Approved: totalSanctioned,
+        Granted: totalSanctioned,
+        PercentGranted: percentSanctioned,
+        Availed: totalAvailed,
+        PercentAvailed: percentAvailed,
     };
 
     return {
@@ -329,4 +382,3 @@ export const generateHqReport = async (startDate, endDate, location, departments
         detailedData,
     };
 };
-
