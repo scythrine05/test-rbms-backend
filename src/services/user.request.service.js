@@ -1,5 +1,6 @@
 import prisma from "../prisma/index.js";
 
+
 // export const createRequest = async (data, userId,location) => {
 //     // Create a list of allowed fields from the Prisma schema
 //     const allowedFields = [
