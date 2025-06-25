@@ -489,16 +489,40 @@ export const getManagerUsersRequests = async (req, res) => {
 //         handleError(error, res);
 //     }
 // };
+// export const acceptRequestByManager = async (req, res) => {
+//     try {
+//         const { id } = requestValidation.requestIdSchema.parse(req.params);
+//         const { isAccept, remark } = req.body;
+
+//         const request = await requestService.acceptRequestByManager(
+//             id,
+//             req.user.id,
+//             isAccept,
+//             remark,
+//         );
+
+//         return successResponse(
+//             res,
+//             200,
+//             `Request ${isAccept ? "accepted" : "rejected"} successfully`,
+//             request,
+//         );
+//     } catch (error) {
+//         handleError(error, res);
+//     }
+// };
+
 export const acceptRequestByManager = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
-        const { isAccept, remark } = req.body;
+        const { isAccept, remark ,mobileView} = req.body;
 
         const request = await requestService.acceptRequestByManager(
             id,
             req.user.id,
             isAccept,
             remark,
+            mobileView
         );
 
         return successResponse(
