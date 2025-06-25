@@ -22,7 +22,7 @@ export const getRefreshToken = async (req, res) => {
         const new_refresh_token = await tokenService.generateRefreshToken(userId);
         return successResponse(res, 200, "Token refreshed successfully", {
             access_token,
-            refresh_token: new_refresh_token
+            refresh_token: new_refresh_token,
         });
     } catch (error) {
         handleError(error, res);
@@ -64,7 +64,9 @@ export const registerManager = async (req, res) => {
 // Change password controller
 export const changePassword = async (req, res) => {
     try {
-        const { currentPassword, newPassword } = authValidation.changePasswordSchema.parse(req.body);
+        const { currentPassword, newPassword } = authValidation.changePasswordSchema.parse(
+            req.body,
+        );
         await authService.changePassword(req.user.id, currentPassword, newPassword);
         return successResponse(res, 200, "Password changed successfully");
     } catch (error) {
@@ -116,8 +118,6 @@ export const getManagerByAdminId = async (req, res) => {
     }
 };
 
-
-
 export const deleteUserById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -128,5 +128,43 @@ export const deleteUserById = async (req, res) => {
     }
 };
 
+//Phone auth controller
 
+export const phoneLogin = async (req, res) => {
+    try {
+        const { phone } = authValidation.phoneLoginSchema.parse(req.body);
+        const result = await authService.phoneLogin(phone);
+        return successResponse(res, 200, "OTP sent successfully", {
+            phone_number: phone,
+            otpId: result.otpId,
+        });
+    } catch (error) {
+        handleError(error, res);
+    }
+};
 
+export const verifyPhoneOtp = async (req, res) => {
+    try {
+        const { otpId, otpCode } = authValidation.verifyOtpSchema.parse(req.body);
+        const result = await authService.verifyPhoneOtp(otpId, otpCode);
+        return successResponse(res, 200, "OTP verified successfully", {
+            tokenData: {
+                access_token: result.access_token,
+                refresh_token: result.refresh_token,
+            },
+            user: result.user,
+        });
+    } catch (error) {
+        handleError(error, res);
+    }
+};
+
+export const resendOtp = async (req, res) => {
+    try {
+        const { otpId } = authValidation.resendOtpSchema.parse(req.body);
+        const result = await authService.resendOtp(otpId);
+        return successResponse(res, 200, "OTP resent successfully", result);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
