@@ -1109,11 +1109,11 @@ export const acceptRequestByManager = async (
       managerAcceptanceId: managerId,
       status: isAccept ? "APPROVED" : "REJECTED",
       remarkByManager: remark ?? null,
-      ...(mobileView && {
+      
         adminRequestStatus: "ACCEPTED",
         adminAcceptance: true,
         adminAcceptanceId: adminId,
-      }),
+      
     };
 
     /* 4. Persist */
