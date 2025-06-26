@@ -27,23 +27,30 @@ export const patchSanctionedRequest = async (req, res) => {
     try {
         // Get ID from query params
         const { id } = patchSanctionedRequestSchema.pick({ id: true }).parse(req.query);
-        
-        // Get other fields from body
-        const { availed, availedTimeFrom, availedTimeTo, availedRemarks } = 
-            patchSanctionedRequestSchema.omit({ id: true }).parse(req.body);
 
-        const updatedRequest = await updateSanctionedRequestAvailed(
-            id, 
-            availed, 
-            { availedTimeFrom, availedTimeTo, availedRemarks }
-        );
-        
+        // Get other fields from body
+        const {
+            availed,
+            availedTimeFrom,
+            availedTimeTo,
+            availedRemarks,
+            grantedFromTime,
+            grantedToTime,
+        } = patchSanctionedRequestSchema.omit({ id: true }).parse(req.body);
+
+        const updatedRequest = await updateSanctionedRequestAvailed(id, availed, {
+            availedTimeFrom,
+            availedTimeTo,
+            availedRemarks,
+            grantedFromTime,
+            grantedToTime,
+        });
+
         return successResponse(res, 200, "Sanctioned request updated successfully", updatedRequest);
     } catch (error) {
-        handleError(error, res);
-    }
+        handleError(error, res);
+    }
 };
-
 
 // export const patchSanctionedRequest = async (req, res) => {
 //     try {

@@ -1,4 +1,15 @@
 import prisma from "../prisma/index.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Get the directory name using import.meta.url
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load track machines data
+const trackMachinesPath = path.join(__dirname, "..", "data", "noOfTrackMachines.json");
+const trackMachinesData = JSON.parse(fs.readFileSync(trackMachinesPath, "utf8"));
 
 export const fetchSanctionedRequests = async (startDate, endDate) => {
     const where = {
@@ -14,9 +25,10 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
         });
     }
 
-    return await prisma.request.findMany({
+    const requests = await prisma.request.findMany({
         where,
         select: {
+            id: true,
             divisionId: true,
             date: true,
             selectedDepartment: true,
@@ -27,6 +39,8 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
             activity: true,
             sanctionedTimeFrom: true,
             sanctionedTimeTo: true,
+            demandTimeFrom: true,
+            demandTimeTo: true,
             availedResponse: true,
             status: true,
             userStatus: true,
@@ -41,14 +55,20 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
             freshCautionLocationTo: true,
             adjacentLinesAffected: true,
             sigDisconnection: true,
+            sntDisconnectionRequired: true,
             elementarySection: true,
             elementarySectionTo: true,
+            sigElementarySectionFrom: true,
+            sigElementarySectionTo: true,
             powerBlockRequired: true,
+            processedLineSections: true,
             userId: true,
             user: {
                 select: {
                     name: true,
                     phone: true,
+                    email: true,
+                    department: true,
                 },
             },
         },
@@ -56,8 +76,135 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
             sanctionedTimeFrom: "asc",
         },
     });
-};
 
+    return requests.map((request) => {
+        // Arrays to collect multiple values
+        const upOrDownOrSLValues = [];
+        const roadNumberValues = [];
+        const otherLinesValues = []; // For storing processed other lines
+
+        if (request.processedLineSections) {
+            // Parse the JSON if it's a string
+            const lineSections =
+                typeof request.processedLineSections === "string"
+                    ? JSON.parse(request.processedLineSections)
+                    : request.processedLineSections;
+
+            // Process each line section
+            if (Array.isArray(lineSections)) {
+                lineSections.forEach((section) => {
+                    // For line or regular type
+                    if (section.type === "regular" || section.type === "line") {
+                        // For regular type, collect lineName values
+                        if (section.lineName && section.lineName.trim() !== "") {
+                            upOrDownOrSLValues.push(section.lineName);
+                        }
+
+                        // Process other lines - handle already comma-separated values
+                        if (section.otherLines && section.otherLines.trim() !== "") {
+                            // Split by commas and add each item individually
+                            const otherLinesItems = section.otherLines.split(",");
+                            otherLinesItems.forEach((item) => {
+                                const trimmedItem = item.trim();
+                                if (trimmedItem) {
+                                    otherLinesValues.push(trimmedItem);
+                                }
+                            });
+                        }
+                    } else if (section.type === "yard") {
+                        // For yard type, collect road numbers
+                        if (section.road && section.road.trim() !== "") {
+                            // Extract only the number from "Rd X" format
+                            const roadMatch = section.road.match(/\d+/);
+                            if (roadMatch) {
+                                roadNumberValues.push(roadMatch[0]);
+                            }
+                        }
+
+                        // Process other roads - handle already comma-separated values
+                        if (section.otherRoads && section.otherRoads.trim() !== "") {
+                            const otherRoadsItems = section.otherRoads.split(",");
+                            otherRoadsItems.forEach((item) => {
+                                const trimmedItem = item.trim();
+                                if (trimmedItem) {
+                                    otherLinesValues.push(trimmedItem);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        // Check if activity matches any track machine type
+        let noOfTrackMachines = undefined;
+        if (request.activity) {
+            // Look for exact match first
+            if (trackMachinesData[request.activity]) {
+                noOfTrackMachines = trackMachinesData[request.activity];
+            } else {
+                // Look for partial match (activity might contain the machine type)
+                for (const machineType in trackMachinesData) {
+                    if (request.activity.includes(machineType)) {
+                        noOfTrackMachines = trackMachinesData[machineType];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Create a new object with the transformed field names
+        return {
+            id: request.divisionId,
+            date: request.date,
+            department: request.selectedDepartment,
+            section: request.selectedSection,
+            stationID: request.stationID,
+            blockSectionOrYard: request.missionBlock,
+            workType: request.workType,
+            activity: request.activity,
+            sanctionedTimeFrom: request.sanctionedTimeFrom,
+            sanctionedTimeTo: request.sanctionedTimeTo,
+            requestedTimeFrom: request.demandTimeFrom,
+            requestedTimeTo: request.demandTimeTo,
+            availedResponse: request.availedResponse,
+            status: request.status,
+            userStatus: request.userStatus,
+            remarkByManager: request.remarkByManager,
+            userResponse: request.userResponse,
+            createdAt: request.createdAt,
+            locationMastFrom: request.workLocationFrom,
+            locationMastTo: request.workLocationTo,
+            cautionRequired: request.freshCautionRequired,
+            kmph: request.freshCautionSpeed,
+            cautionLocationFrom: request.freshCautionLocationFrom,
+            cautionLocationTo: request.freshCautionLocationTo,
+            adjacentLinesAffected: request.adjacentLinesAffected, // Keep original field
+            sigDisconnection: request.sigDisconnection,
+            disconnectionRequired: request.sntDisconnectionRequired,
+            elementarySection: request.elementarySection,
+            elementarySectionTo: request.elementarySectionTo,
+            sigElementarySectionFrom: request.sigElementarySectionFrom,
+            sigElementarySectionTo: request.sigElementarySectionTo,
+            powerBlockRequired: request.powerBlockRequired,
+            userId: request.userId,
+            upDrDownOrSL: upOrDownOrSLValues.length > 0 ? upOrDownOrSLValues.join(", ") : undefined,
+            roadNumber: roadNumberValues.length > 0 ? roadNumberValues.join(", ") : undefined,
+            otherLinesAffected:
+                otherLinesValues.length > 0 ? otherLinesValues.join(", ") : undefined,
+            // Add noOfTrackMachines field if available
+            noOfTrackMachines: noOfTrackMachines,
+            user: request.user
+                ? {
+                      applicantName: request.user.name,
+                      applicantMobile: request.user.phone,
+                      email: request.user.email || null,
+                      department: request.user.department || null,
+                  }
+                : null,
+        };
+    });
+};
 export const updateSanctionedRequestAvailed = async (id, availed, additionalData) => {
     const existingRequest = await prisma.request.findUnique({
         where: { divisionId: id },
@@ -96,6 +243,15 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
         updateData.AvailedTimeTo = null;
     }
 
+    // Add granted time fields if they exist
+    if (additionalData.grantedFromTime) {
+        updateData.grantedFromTime = new Date(additionalData.grantedFromTime);
+    }
+
+    if (additionalData.grantedToTime) {
+        updateData.grantedToTime = new Date(additionalData.grantedToTime);
+    }
+
     const updatedRequest = await prisma.request.update({
         where: { divisionId: id },
         data: updateData,
@@ -105,6 +261,8 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
             AvailedTimeFrom: true,
             AvailedTimeTo: true,
             availedRemarks: true,
+            grantedFromTime: true,
+            grantedToTime: true,
         },
     });
 
