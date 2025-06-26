@@ -1,0 +1,28 @@
+{
+    "RGM working": ["RGM96-10"],
+    "BCM": ["BCM358", "BCM704"],
+    "DTE": ["DTE56743"],
+    "CSM": ["CSM983"],
+    "DUOMAT": ["DUO8078", "DUO8113", "DUO8052"],
+    "UNIMAT": ["UNIMAT8403", "UNIMAT11043"],
+    "MPT": ["MPT2004", "MPT56916", "MPT56924", "MPT57110", "MPT57289"],
+    "SBCM": ["SBCM1878", "SBCM57152"],
+    "BRM": ["BRMR32"],
+    "DTS": ["DTS350", "DTS353"],
+    "TRT": ["TRT984"],
+    "T28": ["T28I", "T28III"],
+    "SQRS": ["SQRS57&58"],
+    "UTV": ["UTV24", "UTV47H", "UTV66H", "UTV164H"],
+    "MFS": [
+        "MFS57213",
+        "MFS57214",
+        "MFS57215",
+        "MFS57216",
+        "MFS57217",
+        "MFS761",
+        "MFS801",
+        "MFS802",
+        "MFS806",
+        "MFS807"
+    ]
+}

@@ -272,6 +272,8 @@ export const generateHqReport = async (
             AvailedTimeFrom: true,
             AvailedTimeTo: true,
             isSanctioned: true,
+            grantedFromTime: true,
+            grantedToTime: true,
         },
     });
 
@@ -303,6 +305,8 @@ export const generateHqReport = async (
             AvailedTimeFrom: true,
             AvailedTimeTo: true,
             isSanctioned: true,
+            grantedFromTime: true,
+            grantedToTime: true,
         },
     });
 
@@ -323,6 +327,7 @@ export const generateHqReport = async (
     // 🧮 Calculate actual metrics
     let totalDemanded = 0;
     let totalSanctioned = 0;
+    let totalGranted = 0;
     let totalAvailed = 0;
 
     requestDetails.forEach((req) => {
@@ -344,6 +349,14 @@ export const generateHqReport = async (
                     : sanctionedDurationInHours;
             totalSanctioned += sanctionedDurationInHours;
         }
+        // Calculate granted hours (if available)
+        if (req.grantedFromTime && req.grantedToTime) {
+            let grantedDurationInHours =
+                (new Date(req.grantedToTime) - new Date(req.grantedFromTime)) / (1000 * 60 * 60);
+            grantedDurationInHours =
+                grantedDurationInHours < 0 ? grantedDurationInHours + 24 : grantedDurationInHours;
+            totalGranted += grantedDurationInHours;
+        }
 
         // Calculate availed hours (if available)
         if (req.AvailedTimeFrom && req.AvailedTimeTo) {
@@ -357,11 +370,15 @@ export const generateHqReport = async (
 
     totalDemanded = parseFloat(totalDemanded.toFixed(2));
     totalSanctioned = parseFloat(totalSanctioned.toFixed(2));
+    totalGranted = parseFloat(totalGranted.toFixed(2));
     totalAvailed = parseFloat(totalAvailed.toFixed(2));
 
     // Calculate percentages
     const percentSanctioned =
         totalDemanded > 0 ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2)) : 0;
+
+    const percentGranted =
+        totalDemanded > 0 ? parseFloat(((totalGranted / totalDemanded) * 100).toFixed(2)) : 0;
 
     const percentAvailed =
         totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
@@ -371,9 +388,8 @@ export const generateHqReport = async (
         TotalRequests: requestDetails.length,
         Demanded: totalDemanded,
         Approved: totalSanctioned,
-        Granted: totalSanctioned,
-        PercentGranted: percentSanctioned,
-        Availed: totalAvailed,
+        Granted: totalGranted || totalSanctioned,
+        PercentGranted: percentGranted || percentSanctioned,
         PercentAvailed: percentAvailed,
     };
 

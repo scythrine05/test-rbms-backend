@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
   id           String         @id @default(uuid())
   name         String
@@ -103,7 +102,7 @@ model Request {
   sanctionedTimeTo                  DateTime?
   AvailedTimeFrom                   DateTime?
   AvailedTimeTo                     DateTime?
-  availedRemarks                    String?
+  availedRemarks                    String?
   sntDisconnectionAssignTo          String?
   trdDisconnectionAssignTo          String?
   powerBlockDisconnectionAssignTo   String?
@@ -111,6 +110,8 @@ model Request {
   userAcceptanceForSanction         Boolean    @default(false)
   userStatus                        String?
   workNature                        String?
+  grantedFromTime                   DateTime?
+  grantedToTime                     DateTime?
   user                              User?      @relation("UserToRequests", fields: [userId], references: [id])
 
   @@index([userId])
