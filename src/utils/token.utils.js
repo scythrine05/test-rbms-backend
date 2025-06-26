@@ -6,4 +6,8 @@ export const generateResetToken = () => {
 
 export const getTokenExpiry = () => {
     return new Date(Date.now() + 3600000); // 1 hour
-}; 
+};
+
+export const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};

@@ -138,6 +138,7 @@ model Optimize_Table {
 model Otp {
   id        String   @id @default(uuid())
   code      String
+  phone     String?
   createdAt DateTime @default(now())
   validTill DateTime
   userId    String

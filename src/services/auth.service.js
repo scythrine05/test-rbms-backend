@@ -1,6 +1,7 @@
 import { hashPassword, comparePassword } from "../utils/password.utils.js";
-import { generateResetToken, getTokenExpiry } from "../utils/token.utils.js";
+import { generateResetToken, getTokenExpiry, generateOTP } from "../utils/token.utils.js";
 import { sendPasswordResetEmail } from "../utils/email.utils.js";
+import { sendOtp } from "../utils/fast2sms.util.js";
 import * as tokenService from "./token.service.js";
 import prisma from "../prisma/index.js";
 const formatUserData = (user) => ({
@@ -11,7 +12,7 @@ const formatUserData = (user) => ({
     department: user.department,
     phone: user.phone,
     location: user.location,
-    depot: user.depot
+    depot: user.depot,
 });
 
 // Login service
@@ -38,7 +39,7 @@ export const getUserById = async (userId) => {
             department: true,
             phone: true,
             location: true,
-        }
+        },
     });
     if (!user) throw new Error("User not found");
     return user;
@@ -51,29 +52,30 @@ export const registerUserByManager = async (data, managerId) => {
         where: {
             managerId,
             role: {
-                in: ["JUNIOR_OFFICER", "SENIOR_OFFICER"]
-            }
+                in: ["JUNIOR_OFFICER", "SENIOR_OFFICER"],
+            },
         },
         select: {
             id: true,
             name: true,
             email: true,
-            role: true
-        }
+            role: true,
+        },
     });
 
     if (existingOfficer) {
-        throw new Error(`You already have a ${existingOfficer.role} with email: ${existingOfficer.email}`);
+        throw new Error(
+            `You already have a ${existingOfficer.role} with email: ${existingOfficer.email}`,
+        );
     }
-
 
     const hashedPassword = await hashPassword(data.password);
     const user = await prisma.user.create({
         data: {
             ...data,
             password: hashedPassword,
-            managerId
-        }
+            managerId,
+        },
     });
     return formatUserData(user);
 };
@@ -85,8 +87,8 @@ export const registerManager = async (data, adminId) => {
         data: {
             ...data,
             password: hashedPassword,
-            adminId: adminId
-        }
+            adminId: adminId,
+        },
     });
     return formatUserData(user);
 };
@@ -100,7 +102,7 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
     const hashedPassword = await hashPassword(newPassword);
     await prisma.user.update({
         where: { id: userId },
-        data: { password: hashedPassword }
+        data: { password: hashedPassword },
     });
 };
 
@@ -112,7 +114,7 @@ export const forgotPassword = async (email) => {
     const resetTokenExpiry = getTokenExpiry();
     await prisma.user.update({
         where: { id: user.id },
-        data: { resetToken, resetTokenExpiry }
+        data: { resetToken, resetTokenExpiry },
     });
     await sendPasswordResetEmail(email, resetToken);
 };
@@ -122,8 +124,8 @@ export const resetPassword = async (token, newPassword) => {
     const user = await prisma.user.findFirst({
         where: {
             resetToken: token,
-            resetTokenExpiry: { gt: new Date() }
-        }
+            resetTokenExpiry: { gt: new Date() },
+        },
     });
     if (!user) throw new Error("Invalid or expired token");
     const hashedPassword = await hashPassword(newPassword);
@@ -132,8 +134,8 @@ export const resetPassword = async (token, newPassword) => {
         data: {
             password: hashedPassword,
             resetToken: null,
-            resetTokenExpiry: null
-        }
+            resetTokenExpiry: null,
+        },
     });
 };
 
@@ -151,20 +153,20 @@ export const getUsersByManagerId = async (managerId, page = 1, limit = 10) => {
                 phone: true,
                 role: true,
                 location: true,
-                createdAt: true
+                createdAt: true,
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip,
-            take: limit
+            take: limit,
         }),
-        prisma.user.count({ where: { managerId } })
+        prisma.user.count({ where: { managerId } }),
     ]);
 
     return {
         users,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
     };
 };
 
@@ -182,26 +184,26 @@ export const getManagerByAdminId = async (adminId, page = 1, limit = 10) => {
                 phone: true,
                 role: true,
                 location: true,
-                createdAt: true
+                createdAt: true,
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip,
-            take: limit
+            take: limit,
         }),
-        prisma.user.count({ where: { adminId } })
+        prisma.user.count({ where: { adminId } }),
     ]);
 
     return {
         users,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
     };
 };
 
 export const deleteUserById = async (id) => {
     const user = await prisma.user.findUnique({
-        where: { id }
+        where: { id },
     });
 
     if (!user) {
@@ -209,6 +211,127 @@ export const deleteUserById = async (id) => {
     }
 
     return await prisma.user.delete({
-        where: { id }
+        where: { id },
     });
+};
+
+// Phone Auth Service
+
+const storeOtp = async (userId, phone, otp) => {
+    const validTill = new Date();
+    validTill.setMinutes(validTill.getMinutes() + 10);
+
+    return await prisma.otp.create({
+        data: {
+            code: otp,
+            phone,
+            validTill,
+            userId,
+        },
+    });
+};
+
+// Generate OTP and store it in the database
+export const phoneLogin = async (phone) => {
+    try {
+        let user = await prisma.user.findFirst({ where: { phone } });
+        if (!user) {
+            throw new Error("No user found with this phone number");
+        }
+
+        const otp = generateOTP();
+        const createdOtp = await storeOtp(user.id, phone, otp);
+        await sendOtp(phone, otp);
+
+        return {
+            message: "OTP sent successfully",
+            userId: user.id,
+            otpId: createdOtp.id,
+        };
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Verify phone OTP service
+export const verifyPhoneOtp = async (otpId, otpCode) => {
+    try {
+        const storedOtp = await prisma.otp.findUnique({
+            where: { id: otpId },
+            include: {
+                user: true,
+            },
+        });
+
+        if (!storedOtp) {
+            throw new Error("OTP not found");
+        }
+
+        if (storedOtp.code !== otpCode) {
+            throw new Error("Invalid OTP");
+        }
+
+        if (new Date() > storedOtp.validTill) {
+            throw new Error("OTP expired");
+        }
+
+        if (!storedOtp.user) {
+            throw new Error("User not found");
+        }
+
+        // Generate tokens
+        const access_token = await tokenService.generateAccessToken(storedOtp.user.id);
+        const refresh_token = await tokenService.generateRefreshToken(storedOtp.user.id);
+
+        // Delete used OTP
+        await prisma.otp.delete({
+            where: { id: otpId },
+        });
+
+        return {
+            access_token,
+            refresh_token,
+            user: formatUserData(storedOtp.user),
+        };
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Resend OTP service
+export const resendOtp = async (otpId) => {
+    try {
+        const existingOtp = await prisma.otp.findUnique({
+            where: { id: otpId },
+            include: {
+                user: true,
+            },
+        });
+
+        if (!existingOtp || !existingOtp.user) {
+            throw new Error("OTP or user not found");
+        }
+
+        const user = existingOtp.user;
+
+        const newOtp = generateOTP();
+
+        // Update existing OTP record
+        await prisma.otp.update({
+            where: { id: otpId },
+            data: {
+                code: newOtp,
+                validTill: new Date(Date.now() + 10 * 60 * 1000),
+            },
+        });
+
+        await sendOtp(phone, otp);
+
+        return {
+            success: true,
+            message: "OTP resent successfully",
+        };
+    } catch (error) {
+        throw error;
+    }
 };
