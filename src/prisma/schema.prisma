@@ -171,6 +171,7 @@ enum Role {
   DEPT_CONTROLLER
   DRM
   HQ
+  JE
 }
 
 enum Acceptance {
