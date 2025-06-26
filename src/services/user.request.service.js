@@ -1,6 +1,5 @@
 import prisma from "../prisma/index.js";
 
-
 // export const createRequest = async (data, userId,location) => {
 //     // Create a list of allowed fields from the Prisma schema
 //     const allowedFields = [
@@ -74,7 +73,6 @@ import prisma from "../prisma/index.js";
 //         },
 //     });
 // };
-
 
 export const createRequest = async (data, userId, divisionCode) => {
     // List of allowed fields from Prisma schema
@@ -160,14 +158,14 @@ export const createRequest = async (data, userId, divisionCode) => {
 
     // 5. Map division code to corresponding letter
     const divisionMap = {
-        "MAS": "A",
-        "MDU": "B",
-        "SA": "C",
-        "PGT": "D",
-        "TPJ": "E",
-        "TVC": "F"
+        MAS: "A",
+        MDU: "B",
+        SA: "C",
+        PGT: "D",
+        TPJ: "E",
+        TVC: "F",
     };
-    
+
     // Get the base division code (first 3 characters)
     const baseDivisionCode = divisionCode?.toUpperCase().slice(0, 3) || "GEN";
     // Get the mapped letter or use original if not in map
@@ -182,11 +180,11 @@ export const createRequest = async (data, userId, divisionCode) => {
         where: {
             createdAt: { lt: now }, // Only check requests created before this one
             date: { gte: startOfMonth, lt: endOfMonth },
-            divisionId: { 
-                startsWith: `${yearPart}${monthChar}${fixedChar}${divisionLetter}` 
-            }
+            divisionId: {
+                startsWith: `${yearPart}${monthChar}${fixedChar}${divisionLetter}`,
+            },
         },
-        orderBy: { createdAt: "desc" } // Get the newest one
+        orderBy: { createdAt: "desc" }, // Get the newest one
     });
 
     // 8. Determine increment number (now 5 digits)
@@ -198,12 +196,12 @@ export const createRequest = async (data, userId, divisionCode) => {
 
     // 10. Create the request with generated ID
     return await prisma.request.create({
-        data: { 
-            ...filteredData, 
-            userId, 
-            status: "PENDING", 
+        data: {
+            ...filteredData,
+            userId,
+            status: "PENDING",
             divisionId,
-            createdAt: now // Explicit set creation time
+            createdAt: now, // Explicit set creation time
         },
     });
 };
@@ -293,13 +291,20 @@ export const updateOptimizeTimes = async (requestId, optimizeTimeFrom, optimizeT
 //   return updatedRequest;
 // };
 
-export const editRequest = async (requestId, optimizeTimeFrom, optimizeTimeTo, date) => {
+export const editRequest = async (
+    requestId,
+    optimizeTimeFrom,
+    optimizeTimeTo,
+    date,
+    mobileView,
+) => {
     const updatedRequest = await prisma.request.update({
         where: { id: requestId },
         data: {
             optimizeTimeFrom,
             optimizeTimeTo,
             date,
+            ...(mobileView && { isSanctioned: true }),
         },
     });
 
@@ -1072,71 +1077,70 @@ export const getAdminPendingRequests = async (
 //     });
 // };
 
-
 export const acceptRequestByManager = async (
-  requestId,
-  managerId,
-  isAccept,
-  remark,
-  mobileView,
+    requestId,
+    managerId,
+    isAccept,
+    remark,
+    mobileView,
 ) => {
-  try {
-    /* 1. Check the request exists (no need to pull admin chain anymore) */
-    const request = await prisma.request.findUnique({
-      where: { id: requestId },
-      select: { id: true },             // lightweight lookup
-    });
+    try {
+        /* 1. Check the request exists (no need to pull admin chain anymore) */
+        const request = await prisma.request.findUnique({
+            where: { id: requestId },
+            select: { id: true }, // lightweight lookup
+        });
 
-    if (!request) {
-      return { ok: false, status: 404, message: "Request not found" };
+        if (!request) {
+            return { ok: false, status: 404, message: "Request not found" };
+        }
+
+        /* 2. Look up the manager’s own adminId */
+        const managerRecord = await prisma.user.findUnique({
+            where: { id: managerId },
+            select: { adminId: true },
+        });
+
+        if (!managerRecord || !managerRecord.adminId) {
+            return { ok: false, status: 404, message: "Manager / admin not found" };
+        }
+
+        const adminId = managerRecord.adminId;
+
+        /* 3. Build the update payload */
+        const data = {
+            managerAcceptance: isAccept,
+            managerAcceptanceId: managerId,
+            status: isAccept ? "APPROVED" : "REJECTED",
+            remarkByManager: remark ?? null,
+            ...(mobileView && {
+                adminRequestStatus: "ACCEPTED",
+                adminAcceptance: true,
+                adminAcceptanceId: adminId,
+            }),
+        };
+
+        /* 4. Persist */
+        const updated = await prisma.request.update({
+            where: { id: requestId },
+            data,
+        });
+
+        return { ok: true, status: 200, data: updated };
+    } catch (error) {
+        console.error("Error in acceptRequestByManager:", error);
+
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            return {
+                ok: false,
+                status: 500,
+                message: "Database error",
+                code: error.code,
+            };
+        }
+
+        return { ok: false, status: 500, message: "Internal server error" };
     }
-
-    /* 2. Look up the manager’s own adminId */
-    const managerRecord = await prisma.user.findUnique({
-      where: { id: managerId },
-      select: { adminId: true },
-    });
-
-    if (!managerRecord || !managerRecord.adminId) {
-      return { ok: false, status: 404, message: "Manager / admin not found" };
-    }
-
-    const adminId = managerRecord.adminId;
-
-    /* 3. Build the update payload */
-    const data= {
-      managerAcceptance: isAccept,
-      managerAcceptanceId: managerId,
-      status: isAccept ? "APPROVED" : "REJECTED",
-      remarkByManager: remark ?? null,
-      ...(mobileView && {
-        adminRequestStatus: "ACCEPTED",
-        adminAcceptance: true,
-        adminAcceptanceId: adminId,
-      }),
-    };
-
-    /* 4. Persist */
-    const updated = await prisma.request.update({
-      where: { id: requestId },
-      data,
-    });
-
-    return { ok: true, status: 200, data: updated };
-  } catch (error) {
-    console.error("Error in acceptRequestByManager:", error);
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return {
-        ok: false,
-        status: 500,
-        message: "Database error",
-        code: error.code,
-      };
-    }
-
-    return { ok: false, status: 500, message: "Internal server error" };
-  }
 };
 
 export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
@@ -1333,7 +1337,6 @@ export const approveAllPendingRequests = async (adminId, startDate, endDate) => 
         };
     });
 };
-
 
 // export const approveAllPendingRequests = async (adminId) => {
 //     return await prisma.$transaction(async (tx) => {
@@ -1861,34 +1864,35 @@ export const getManagerRequestData = async (
     }
 };
 
-
-export const userRequestRemarkAccept =async(id)=>{
-    const request= await prisma.request.findUnique({
-         where: { id },
-    })
+export const userRequestRemarkAccept = async (id) => {
+    const request = await prisma.request.findUnique({
+        where: { id },
+    });
     if (!request) {
         throw new Error("Request not found");
     }
-     return await prisma.request.update({
+    return await prisma.request.update({
         where: { id },
         data: {
-          userAcceptanceForSanction:true
+            availedRemarks: "ACCEPTED",
+            userAcceptanceForSanction: true,
         },
     });
-}
+};
 
-
-export const userRequestRemarkReject =async(id)=>{
-    const request= await prisma.request.findUnique({
-         where: { id },
-    })
+export const userRequestRemarkReject = async (id, remark) => {
+    const request = await prisma.request.findUnique({
+        where: { id },
+    });
     if (!request) {
         throw new Error("Request not found");
     }
-     return await prisma.request.update({
-        where: { id: requestId },
+    return await prisma.request.update({
+        where: { id },
         data: {
-          userAcceptanceForSanction:true
+            userAcceptanceForSanction: false,
+            isSanctioned: false,
+            availedRemarks: remark,
         },
     });
-}
+};

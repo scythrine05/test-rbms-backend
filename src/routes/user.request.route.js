@@ -1,38 +1,54 @@
 import express from "express";
 import * as requestController from "../controllers/user.request.controller.js";
-import { adminMiddleware, authenticateToken, managerMiddleware } from "../middlewares/auth.middleware.js";
+import {
+    adminMiddleware,
+    authenticateToken,
+    managerMiddleware,
+} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-
-router.put("/accept/:id",authenticateToken,requestController.userRequestRemarkAccept)
-router.put("/user-request/reject/:id",authenticateToken,requestController.userRequestRemarkReject)
-
+router.put("/accept/:id", authenticateToken, requestController.userRequestRemarkAccept);
+router.put("/reject/:id", authenticateToken, requestController.userRequestRemarkReject);
 
 // User routes
 router.post("/", authenticateToken, requestController.createRequest);
 router.get("/user", authenticateToken, requestController.getUserRequests);
 router.get("/user-data", authenticateToken, requestController.getUserRequestsData);
-router.get("/manager-data",authenticateToken,requestController.getManagerData)
-router.post("/updatedStatus",authenticateToken,requestController.updatedSatus)
-router.post("/userResponse",authenticateToken,requestController.userResponse)
-router.post("/updateOptimizeTimes",authenticateToken,requestController.updateOptimizeTimes)
-router.post("/editRequest",authenticateToken,requestController.editRequest)
+router.get("/manager-data", authenticateToken, requestController.getManagerData);
+router.post("/updatedStatus", authenticateToken, requestController.updatedSatus);
+router.post("/userResponse", authenticateToken, requestController.userResponse);
+router.post("/updateOptimizeTimes", authenticateToken, requestController.updateOptimizeTimes);
+router.post("/editRequest", authenticateToken, requestController.editRequest);
 
 router.post("/updateSanctionStatus", authenticateToken, requestController.updateSanctionStatus);
 router.delete(
-  "/delet-optimiseData/:id",
-  authenticateToken,
-  requestController.deleteOptimizeDataRequest
+    "/delet-optimiseData/:id",
+    authenticateToken,
+    requestController.deleteOptimizeDataRequest,
 );
 
-router.get("/manager/manager-optimise-status",authenticateToken,requestController.getManagerRequestData);
+router.get(
+    "/manager/manager-optimise-status",
+    authenticateToken,
+    requestController.getManagerRequestData,
+);
 router.get("/:id", authenticateToken, requestController.getRequest);
 router.put("/:id", authenticateToken, requestController.updateRequest);
 router.delete("/:id", authenticateToken, requestController.deleteRequest);
 // Manager routes
-router.get("/manager/requests", authenticateToken, managerMiddleware, requestController.getManagerRequests);
-router.put("/:id/status", authenticateToken, managerMiddleware, requestController.updateRequestStatus);
+router.get(
+    "/manager/requests",
+    authenticateToken,
+    managerMiddleware,
+    requestController.getManagerRequests,
+);
+router.put(
+    "/:id/status",
+    authenticateToken,
+    managerMiddleware,
+    requestController.updateRequestStatus,
+);
 
 // Get other requests
 router.get("/other/:selectedDepo", authenticateToken, requestController.getOtherRequests);
@@ -41,47 +57,77 @@ router.get("/other/:selectedDepo", authenticateToken, requestController.getOther
 router.put("/other/:id", authenticateToken, requestController.updateOtherRequest);
 
 // Get all requests from manager's users
-router.get("/manager/users-requests", authenticateToken, managerMiddleware, requestController.getManagerUsersRequests);
+router.get(
+    "/manager/users-requests",
+    authenticateToken,
+    managerMiddleware,
+    requestController.getManagerUsersRequests,
+);
 
-router.get("/admin/users-requests", authenticateToken, adminMiddleware, requestController.getAdminUsersRequests);
+router.get(
+    "/admin/users-requests",
+    authenticateToken,
+    adminMiddleware,
+    requestController.getAdminUsersRequests,
+);
 
-router.put("/manager/accept/:id", authenticateToken, managerMiddleware, requestController.acceptRequestByManager);
-
-router.put("/admin/accept/:id", authenticateToken, adminMiddleware, requestController.acceptRequestByAdmin);
 router.put(
-  '/admin/approve-all-pending',
-  authenticateToken,
-  adminMiddleware,
-  requestController.approveAllPendingRequests
+    "/manager/accept/:id",
+    authenticateToken,
+    managerMiddleware,
+    requestController.acceptRequestByManager,
+);
+
+router.put(
+    "/admin/accept/:id",
+    authenticateToken,
+    adminMiddleware,
+    requestController.acceptRequestByAdmin,
+);
+router.put(
+    "/admin/approve-all-pending",
+    authenticateToken,
+    adminMiddleware,
+    requestController.approveAllPendingRequests,
 );
 
 router.post(
-  "/admin/save-optimized-requests",
-  authenticateToken,
-  adminMiddleware,
-  requestController.saveOptimizedRequests
+    "/admin/save-optimized-requests",
+    authenticateToken,
+    adminMiddleware,
+    requestController.saveOptimizedRequests,
 );
 
 router.post(
-  "/admin/save-optimized-requests-combined",
-  authenticateToken,
-  adminMiddleware,
-  requestController.saveOptimizedRequestsCombined
+    "/admin/save-optimized-requests-combined",
+    authenticateToken,
+    adminMiddleware,
+    requestController.saveOptimizedRequestsCombined,
 );
 
 router.put(
-  "/admin/save-optimized-requests-status",
-  authenticateToken,
-  adminMiddleware,
-  requestController.saveOptimizedRequestsStatus
+    "/admin/save-optimized-requests-status",
+    authenticateToken,
+    adminMiddleware,
+    requestController.saveOptimizedRequestsStatus,
 );
 
-router.get("/admin/approved", authenticateToken, adminMiddleware, requestController.getUsersByAdminId);
-router.get("/admin/optimized",authenticateToken,adminMiddleware,requestController.getOptimizeData)
+router.get(
+    "/admin/approved",
+    authenticateToken,
+    adminMiddleware,
+    requestController.getUsersByAdminId,
+);
+router.get(
+    "/admin/optimized",
+    authenticateToken,
+    adminMiddleware,
+    requestController.getOptimizeData,
+);
 router.put(
-  "/manager/batch-accept",
-  authenticateToken,
-  managerMiddleware,
-  requestController.batchAcceptRequests
+    "/manager/batch-accept",
+    authenticateToken,
+    managerMiddleware,
+    requestController.batchAcceptRequests,
 );
 export default router;

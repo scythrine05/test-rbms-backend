@@ -5,7 +5,7 @@ import { handleError, successResponse } from "../utils/response.js";
 export const createRequest = async (req, res) => {
     try {
         const data = requestValidation.createRequestSchema.parse(req.body);
-        const request = await requestService.createRequest(data, req.user.id,req.user.location);
+        const request = await requestService.createRequest(data, req.user.id, req.user.location);
         return successResponse(res, 201, "Request created successfully", request);
     } catch (error) {
         handleError(error, res);
@@ -107,13 +107,14 @@ export const updateOptimizeTimes = async (req, res) => {
 
 export const editRequest = async (req, res) => {
     try {
-        const { requestId, optimizeTimeFrom, optimizeTimeTo, date } = req.body;
+        const { requestId, optimizeTimeFrom, optimizeTimeTo, date, mobileView } = req.body;
 
         const updatedRequest = await requestService.editRequest(
             requestId,
             optimizeTimeFrom,
             optimizeTimeTo,
             date,
+            mobileView,
         );
 
         return res.json({
@@ -515,14 +516,14 @@ export const getManagerUsersRequests = async (req, res) => {
 export const acceptRequestByManager = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
-        const { isAccept, remark ,mobileView} = req.body;
+        const { isAccept, remark, mobileView } = req.body;
 
         const request = await requestService.acceptRequestByManager(
             id,
             req.user.id,
             isAccept,
             remark,
-            mobileView
+            mobileView,
         );
 
         return successResponse(
@@ -630,7 +631,7 @@ export const approveAllPendingRequests = async (req, res) => {
     try {
         const adminId = req.user.id; // Assuming user ID is available from auth middleware
         const { startDate, endDate } = req.body;
-        const result = await requestService.approveAllPendingRequests(adminId,startDate,endDate);
+        const result = await requestService.approveAllPendingRequests(adminId, startDate, endDate);
         return successResponse(res, 200, "All pending requests approved successfully", result);
     } catch (error) {
         handleError(error, res);
@@ -713,8 +714,8 @@ export const saveOptimizedRequestsCombined = async (req, res, next) => {
                 data: req.body,
             });
         }
-        
-       const { requestIds } = req.body;
+
+        const { requestIds } = req.body;
 
         if (!Array.isArray(requestIds)) {
             return res.status(400).json({
@@ -733,7 +734,7 @@ export const saveOptimizedRequestsCombined = async (req, res, next) => {
         // Call the service function to update the status
         const requestIdsresult = await requestService.saveOptimizedRequestsStatus(requestIds);
 
-        const optimizedData  = req.body.processedOptimizedData;
+        const optimizedData = req.body.processedOptimizedData;
 
         if (!Array.isArray(optimizedData)) {
             return res.status(400).json({
@@ -779,7 +780,7 @@ export const saveOptimizedRequestsCombined = async (req, res, next) => {
         }
 
         const processedOptimizedDataresult = await requestService.saveOptimizedData(optimizedData);
-        res.status(200).json({requestIdsresult, processedOptimizedDataresult});
+        res.status(200).json({ requestIdsresult, processedOptimizedDataresult });
     } catch (error) {
         console.error("Controller error:", error);
         res.status(500).json({
@@ -881,24 +882,23 @@ export const batchAcceptRequests = async (req, res) => {
     }
 };
 
-export const userRequestRemarkAccept= async(req,res)=>{
-    try{
-        const {id}=req.params;
-        const request=await requestService.userRequestRemarkAccept(id)
-        return successResponse(res,200,request,"Request accepted Successfully")
+export const userRequestRemarkAccept = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const request = await requestService.userRequestRemarkAccept(id);
+        return successResponse(res, 200, request, "Request accepted Successfully");
+    } catch (error) {
+        handleError(error, res);
     }
-    catch(error){
-handleError(error,res)
-    }
-}
-export const userRequestRemarkReject= async(req,res)=>{
-    try{
-        const {id}=req.body;
-        const request=await requestService.userRequestRemarkReject(id)
-        return successResponse(res,200,request,"Request accepted Successfully")
-    }
-    catch(error){
-handleError(error,res)
-    }
-}
+};
+export const userRequestRemarkReject = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { remarks } = req.body;
 
+        const request = await requestService.userRequestRemarkReject(id, remarks);
+        return successResponse(res, 200, request, "Request accepted Successfully");
+    } catch (error) {
+        handleError(error, res);
+    }
+};
