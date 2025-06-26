@@ -148,7 +148,7 @@ export const verifyPhoneOtp = async (req, res) => {
         const { otpId, otpCode } = authValidation.verifyOtpSchema.parse(req.body);
         const result = await authService.verifyPhoneOtp(otpId, otpCode);
         return successResponse(res, 200, "OTP verified successfully", {
-            tokenData: {
+            data: {
                 access_token: result.access_token,
                 refresh_token: result.refresh_token,
             },
