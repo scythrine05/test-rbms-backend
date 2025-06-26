@@ -19,5 +19,7 @@ ALTER TABLE "Request" ADD COLUMN     "AvailedTimeFrom" TIMESTAMP(3),
 ADD COLUMN     "AvailedTimeTo" TIMESTAMP(3),
 ADD COLUMN     "availedRemarks" TEXT,
 ADD COLUMN     "divisionId" TEXT,
+ADD COLUMN     "grantedFromTime" TIMESTAMP(3),
+ADD COLUMN     "grantedToTime" TIMESTAMP(3),
 ADD COLUMN     "powerBlockDisconnectionAssignTo" TEXT,
 ADD COLUMN     "userAcceptanceForSanction" BOOLEAN NOT NULL DEFAULT false;
