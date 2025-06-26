@@ -9,6 +9,7 @@ import { Config } from "./config/index.js";
 import api_compression from "./middlewares/api_compression.middleware.js";
 import routes from "./routes/index.js";
 
+
 //express init
 const app = express();
 
