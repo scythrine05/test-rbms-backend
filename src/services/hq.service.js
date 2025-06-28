@@ -296,13 +296,21 @@ export const generateHqReport = async (
         blockTypes.length > 0 &&
         !(blockTypes.length === 1 && blockTypes[0] === "All")
     ) {
-        const mappedBlockTypes = blockTypes.map((blockType) => {
-            if (blockType === "Non-corridor") return "Outside Corridor";
-            if (blockType === "Emergency") return "Urgent Block";
-            if (blockType === "Corridor") return "Corridor";
-            if (blockType === "Mega") return "Mega";
-            return blockType;
-        });
+        // const mappedBlockTypes = blockTypes.map((blockType) => {
+        //     if (blockType === "Non-corridor") return "Outside Corridor";
+        //     if (blockType === "Emergency") return "Urgent Block";
+        //     if (blockType === "Corridor") return "Corridor";
+        //     if (blockType === "Mega") return "Mega";
+        //     return blockType;
+        // });
+        const mappedBlockTypes = blockTypes.flatMap((blockType) => {
+  if (blockType === "Non-corridor") return ["Outside Corridor"];
+  if (blockType === "Emergency") return ["Urgent Block"];
+  if (blockType === "Corridor") return ["Corridor", "Corridor Block"]; // ✅ BOTH
+  if (blockType === "Mega") return ["Mega"];
+  return [blockType]; // wrap in array to keep flatMap working
+});
+
 
         filters.push({
             corridorType: {
