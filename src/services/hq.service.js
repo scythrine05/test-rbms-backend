@@ -277,8 +277,8 @@ export const generateHqReport = async (
     // 🏢 Department filter
     if (departments && departments.length > 0) {
         const mappedDepartments = departments.map((dept) => {
-            if (dept === "Engineering") return "ENGG";
-            if (dept === "ST") return "S&T";
+            if (dept === "Engineering"||dept==="ENGG") return "ENGG";
+            if (dept === "ST"||dept==="S&T") return "S&T";
             if (dept === "TRD") return "TRD";
             return dept;
         });
@@ -417,10 +417,14 @@ export const generateHqReport = async (
             totalDemanded > 0 ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2)) : 0;
 
         const percentGranted =
-            totalDemanded > 0 ? parseFloat(((totalGranted / totalDemanded) * 100).toFixed(2)) : 0;
+            // totalDemanded > 0 ? parseFloat(((totalGranted / totalDemanded) * 100).toFixed(2)) : 0;
+            totalSanctioned > 0 ? parseFloat(((totalGranted / totalSanctioned) * 100).toFixed(2)) : 0;
+
 
         const percentAvailed =
-            totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
+            // totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
+            totalGranted > 0 ? parseFloat(((totalAvailed / totalGranted) * 100).toFixed(2)) : 0;
+
 
         return {
             Department: section, // Using section name instead of location
@@ -490,18 +494,22 @@ export const generateHqReport = async (
             totalDemanded > 0 ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2)) : 0;
 
         const percentGranted =
-            totalDemanded > 0 ? parseFloat(((totalGranted / totalDemanded) * 100).toFixed(2)) : 0;
+            // totalDemanded > 0 ? parseFloat(((totalGranted / totalDemanded) * 100).toFixed(2)) : 0;
+            totalSanctioned > 0 ? parseFloat(((totalGranted / totalSanctioned) * 100).toFixed(2)) : 0;
+
 
         const percentAvailed =
-            totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
+            // totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
+            totalGranted > 0 ? parseFloat(((totalAvailed / totalGranted) * 100).toFixed(2)) : 0;
+
 
         pastBlockSummary.push({
             Department: location || "All Locations",
             TotalRequests: filteredRequests.length,
             Demanded: totalDemanded,
             Approved: totalSanctioned,
-            Granted: totalGranted || totalSanctioned,
-            PercentGranted: percentGranted || percentSanctioned,
+            Granted: totalGranted,
+            PercentGranted: percentGranted,
             PercentAvailed: percentAvailed,
         });
     }
