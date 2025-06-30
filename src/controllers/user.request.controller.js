@@ -541,7 +541,9 @@ export const acceptRequestByAdmin = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
         const acceptance = req.query.accept === "true";
-        const request = await requestService.acceptRequestByAdmin(id, acceptance, req.user.id);
+        const mobileView=req.body.isMobileView;
+        const remarkByManager=req.body.remark;
+        const request = await requestService.acceptRequestByAdmin(id, acceptance, req.user.id,mobileView,remarkByManager);
         return successResponse(res, 200, "Request accepted successfully", request);
     } catch (error) {
         handleError(error, res);
