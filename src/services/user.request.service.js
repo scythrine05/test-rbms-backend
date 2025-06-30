@@ -1874,7 +1874,7 @@ export const userRequestRemarkAccept = async (id) => {
     return await prisma.request.update({
         where: { id },
         data: {
-            acceptRejectRemark: "ACCEPTED",
+            userResponse: "ACCEPTED",
             userAcceptanceForSanction: true,
         },
     });
@@ -1892,7 +1892,7 @@ export const userRequestRemarkReject = async (id, remark) => {
         data: {
             userAcceptanceForSanction: false,
             isSanctioned: false,
-            acceptRejectRemark: remark,
+            userResponse: remark,
         },
     });
 };
