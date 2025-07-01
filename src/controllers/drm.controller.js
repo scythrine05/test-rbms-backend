@@ -23,6 +23,7 @@ export const generateReport = async (req, res) => {
             majorSectionsFilter,
             departmentFilter,
             blockTypeFilter,
+            locationFilter
         );
 
         return successResponse(res, 200, "Report generated successfully", result);
