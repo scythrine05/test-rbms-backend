@@ -1143,24 +1143,24 @@ export const acceptRequestByManager = async (
     }
 };
 
-export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
-    const request = await prisma.request.findUnique({
-        where: { id: requestId },
-    });
+// export const acceptRequestByAdmin = async (requestId, acceptance, adminId,mobileView,remarkByAdmin) => {
+//     const request = await prisma.request.findUnique({
+//         where: { id: requestId },
+//     });
 
-    if (!request) {
-        throw new Error("Request not found");
-    }
+//     if (!request) {
+//         throw new Error("Request not found");
+//     }
 
-    return await prisma.request.update({
-        where: { id: requestId },
-        data: {
-            adminAcceptance: acceptance,
-            adminAcceptanceId: adminId,
-            adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED",
-        },
-    });
-};
+//     return await prisma.request.update({
+//         where: { id: requestId },
+//         data: {
+//             adminAcceptance: acceptance,
+//             adminAcceptanceId: adminId,
+//             adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED",
+//         },
+//     });
+// };
 
 // export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate, endDate) => {
 //     const skip = (page - 1) * limit;
@@ -1217,7 +1217,37 @@ export const acceptRequestByAdmin = async (requestId, acceptance, adminId) => {
 //         },
 //     };
 // };
+export const acceptRequestByAdmin = async (
+  requestId,
+  acceptance,
+  adminId,
+  mobileView,
+  remarkByManager  // Changed parameter name to match your DB column
+) => {
+  const request = await prisma.request.findUnique({
+    where: { id: requestId },
+  });
 
+  if (!request) {
+    throw new Error("Request not found");
+  }
+
+  const updateData = {
+    adminAcceptance: acceptance,
+    adminAcceptanceId: adminId,
+    adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED",
+  };
+
+  // Add remark to remarkByManager column if mobileView is true and remark exists
+  if (mobileView && remarkByManager) {
+    updateData.remarkByManager = remarkByManager;  // Updated to use your DB column name
+  }
+
+  return await prisma.request.update({
+    where: { id: requestId },
+    data: updateData,
+  });
+};
 export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
