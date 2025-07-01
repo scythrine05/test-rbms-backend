@@ -58,7 +58,7 @@ export const phoneLoginSchema = z.object({
 
 export const verifyOtpSchema = z.object({
     otpId: z.string().uuid("Invalid OTP ID format"),
-    otpCode: z.string().length(6, "OTP must be 6 digits"),
+    otpCode: z.string().length(4, "OTP must be 6 digits"),
 });
 
 export const resendOtpSchema = z.object({
