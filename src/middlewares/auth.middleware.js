@@ -129,6 +129,7 @@ export const DRMorHQMiddleware = async (req, res, next) => {
                 user.role !== "SENIOR_OFFICER" &&
                 user.role !== "JUNIOR_OFFICER" &&
                 user.role !== "ADMIN" &&
+                user.role !== "USER" &&
                 user.role !== "SUPER_ADMIN")
         ) {
             return res.status(403).json({
