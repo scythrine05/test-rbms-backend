@@ -1218,35 +1218,35 @@ export const acceptRequestByManager = async (
 //     };
 // };
 export const acceptRequestByAdmin = async (
-  requestId,
-  acceptance,
-  adminId,
-  mobileView,
-  remarkByManager  // Changed parameter name to match your DB column
+    requestId,
+    acceptance,
+    adminId,
+    mobileView,
+    remarkByManager, // Changed parameter name to match your DB column
 ) => {
-  const request = await prisma.request.findUnique({
-    where: { id: requestId },
-  });
+    const request = await prisma.request.findUnique({
+        where: { id: requestId },
+    });
 
-  if (!request) {
-    throw new Error("Request not found");
-  }
+    if (!request) {
+        throw new Error("Request not found");
+    }
 
-  const updateData = {
-    adminAcceptance: acceptance,
-    adminAcceptanceId: adminId,
-    adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED",
-  };
+    const updateData = {
+        adminAcceptance: acceptance,
+        adminAcceptanceId: adminId,
+        adminRequestStatus: acceptance ? "ACCEPTED" : "REJECTED",
+    };
 
-  // Add remark to remarkByManager column if mobileView is true and remark exists
-  if (mobileView && remarkByManager) {
-    updateData.remarkByManager = remarkByManager;  // Updated to use your DB column name
-  }
+    // Add remark to remarkByManager column if mobileView is true and remark exists
+    if (mobileView && remarkByManager) {
+        updateData.remarkByManager = remarkByManager; // Updated to use your DB column name
+    }
 
-  return await prisma.request.update({
-    where: { id: requestId },
-    data: updateData,
-  });
+    return await prisma.request.update({
+        where: { id: requestId },
+        data: updateData,
+    });
 };
 export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
@@ -1541,36 +1541,100 @@ export const getTrdRequests = async (
     };
 };
 
+// export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, endDate) => {
+//     const skip = (page - 1) * limit;
+
+//     // Convert dates
+//     const startDateTime = startDate ? new Date(startDate + "T00:00:00.000Z") : undefined;
+//     const endDateTime = endDate ? new Date(endDate + "T23:59:59.999Z") : undefined;
+
+//     // 1. Get optimized IDs
+//     const optimizedIds = await prisma.optimize_Table.findMany({
+//         select: { id: true },
+//     });
+//     const optimizedIdList = optimizedIds.map((item) => item.id);
+
+//     // 2. Get matching requests
+//     const whereClause = {
+//         id: { in: optimizedIdList },
+//         adminAcceptance: true,
+//         adminRequestStatus: "ACCEPTED",
+//         managerAcceptance: true,
+//         adminAcceptanceId: adminId,
+//         ...(startDateTime &&
+//             endDateTime && {
+//                 date: { gte: startDateTime, lte: endDateTime },
+//             }),
+//     };
+
+//     const [requests, total] = await Promise.all([
+//         prisma.request.findMany({
+//             where: whereClause,
+//             include: { user: { select: { id: true, name: true, email: true, role: true } } },
+//             orderBy: { createdAt: "desc" },
+//             skip,
+//             take: limit,
+//         }),
+//         prisma.request.count({ where: whereClause }),
+//     ]);
+
+//     // 3. Get optimize data separately if needed
+//     const optimizeData = await prisma.optimize_Table.findMany({
+//         where: { id: { in: optimizedIdList } },
+//     });
+
+//     // Combine data
+//     const result = requests.map((request) => ({
+//         ...request,
+//         optimizeData: optimizeData.find((opt) => opt.id === request.id),
+//     }));
+
+//     return {
+//         requests: result,
+//         total,
+//         page,
+//         totalPages: Math.ceil(total / limit),
+//         dateRange: { startDate: startDateTime, endDate: endDateTime },
+//     };
+// };
+
 export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, endDate) => {
     const skip = (page - 1) * limit;
 
-    // Convert dates
-    const startDateTime = startDate ? new Date(startDate + "T00:00:00.000Z") : undefined;
-    const endDateTime = endDate ? new Date(endDate + "T23:59:59.999Z") : undefined;
+    // Validate and convert dates
+    if (!startDate || !endDate) {
+        throw new Error("Both startDate and endDate are required for filtering");
+    }
 
-    // 1. Get optimized IDs
-    const optimizedIds = await prisma.optimize_Table.findMany({
-        select: { id: true },
-    });
-    const optimizedIdList = optimizedIds.map((item) => item.id);
+    const startDateTime = new Date(`${startDate}T00:00:00.000Z`);
+    const endDateTime = new Date(`${endDate}T23:59:59.999Z`);
 
-    // 2. Get matching requests
+    // Strict date filtering where clause
     const whereClause = {
-        id: { in: optimizedIdList },
         adminAcceptance: true,
         adminRequestStatus: "ACCEPTED",
         managerAcceptance: true,
         adminAcceptanceId: adminId,
-        ...(startDateTime &&
-            endDateTime && {
-                date: { gte: startDateTime, lte: endDateTime },
-            }),
+        optimizeStatus: true,
+        date: {
+            gte: startDateTime,
+            lte: endDateTime,
+        },
     };
 
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
             where: whereClause,
-            include: { user: { select: { id: true, name: true, email: true, role: true } } },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                    },
+                },
+            },
             orderBy: { createdAt: "desc" },
             skip,
             take: limit,
@@ -1578,15 +1642,17 @@ export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, 
         prisma.request.count({ where: whereClause }),
     ]);
 
-    // 3. Get optimize data separately if needed
+    // Get optimize data only for the filtered requests
     const optimizeData = await prisma.optimize_Table.findMany({
-        where: { id: { in: optimizedIdList } },
+        where: {
+            id: { in: requests.map((r) => r.id) },
+        },
     });
 
-    // Combine data
+    // Combine the data
     const result = requests.map((request) => ({
         ...request,
-        optimizeData: optimizeData.find((opt) => opt.id === request.id),
+        optimizeData: optimizeData.find((opt) => opt.id === request.id) || null,
     }));
 
     return {
@@ -1594,7 +1660,10 @@ export const getOptimizeData = async (adminId, page = 1, limit = 10, startDate, 
         total,
         page,
         totalPages: Math.ceil(total / limit),
-        dateRange: { startDate: startDateTime, endDate: endDateTime },
+        dateRange: {
+            startDate: startDateTime,
+            endDate: endDateTime,
+        },
     };
 };
 
