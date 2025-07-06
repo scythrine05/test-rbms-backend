@@ -179,3 +179,20 @@ enum Acceptance {
   ACCEPTED
   REJECTED
 }
+
+//New model for Train Arrival Update
+
+model TrainArrival {
+  id                String    @id @default(uuid())
+  majorSection      String
+  referenceStation  String
+  trainNumber       String
+  arrivalTime       String
+  arrivedOrNot      Boolean   @default(false)
+  arrivedTime       DateTime?
+  affectingStations String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([referenceStation, trainNumber])
+}

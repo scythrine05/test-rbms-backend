@@ -18,3 +18,8 @@ export const patchSanctionedRequestSchema = z.object({
     grantedFromTime: z.string().optional(),
     grantedToTime: z.string().optional(),
 });
+
+export const updateTrainArrivalSchema = z.object({
+    reference_station: z.string().min(1, "Reference station is required"),
+    train_number: z.string().min(1, "Train number is required"),
+});

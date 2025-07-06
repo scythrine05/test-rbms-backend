@@ -300,3 +300,27 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
 
 //     return updatedRequest;
 // };
+
+export const updateTrainArrival = async (referenceStation, trainNumber) => {
+    const updatedTrain = await prisma.trainArrival.update({
+        where: {
+            referenceStation_trainNumber: {
+                referenceStation: referenceStation,
+                trainNumber: trainNumber,
+            },
+        },
+        data: {
+            arrivedOrNot: true,
+            arrivedTime: new Date(),
+        },
+        select: {
+            id: true,
+            referenceStation: true,
+            trainNumber: true,
+            arrivedOrNot: true,
+            arrivedTime: true,
+        },
+    });
+
+    return updatedTrain;
+};

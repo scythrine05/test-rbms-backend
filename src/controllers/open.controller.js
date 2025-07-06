@@ -1,10 +1,12 @@
 import {
     fetchSanctionedRequests,
     updateSanctionedRequestAvailed,
+    updateTrainArrival,
 } from "../services/open.service.js";
 import {
     getSanctionedRequestsSchema,
     patchSanctionedRequestSchema,
+    updateTrainArrivalSchema,
 } from "../validations/open.validation.js";
 import { handleError, successResponse } from "../utils/response.js";
 
@@ -63,3 +65,15 @@ export const patchSanctionedRequest = async (req, res) => {
 //         handleError(error, res);
 //     }
 // };
+
+export const patchTrainArrival = async (req, res) => {
+    try {
+        const { reference_station, train_number } = updateTrainArrivalSchema.parse(req.query);
+
+        const updatedTrain = await updateTrainArrival(reference_station, train_number);
+
+        return successResponse(res, 200, "Train arrival updated successfully", updatedTrain);
+    } catch (error) {
+        handleError(error, res);
+    }
+};
