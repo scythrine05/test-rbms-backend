@@ -329,6 +329,7 @@ export const getOtherRequests = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
+        const userDepartement = req.query.userDepartement;
 
         if (!req.user || !req.user.email) {
             return res.status(400).json({
@@ -343,6 +344,7 @@ export const getOtherRequests = async (req, res) => {
             req.user.email,
             startDate,
             endDate,
+            userDepartement,
         );
         return successResponse(res, 200, "Other requests retrieved successfully", result);
     } catch (error) {
@@ -378,11 +380,37 @@ export const getTrdRequests = async (req, res) => {
     }
 };
 
+// export const updateOtherRequest = async (req, res) => {
+//     try {
+//         const { id } = requestValidation.requestIdSchema.parse(req.params);
+//         const { disconnectionRequestRejectRemarks } =
+//             requestValidation.updateOtherRequestSchema.parse(req.body);
+//         const acceptance = req.query.accept === "true";
+
+//         // For rejection, remarks are required
+//         if (!acceptance && !disconnectionRequestRejectRemarks) {
+//             return res.status(400).json({
+//                 status: false,
+//                 message: "Rejection remarks are required",
+//             });
+//         }
+
+//         const request = await requestService.updateOtherRequest(
+//             id,
+//             acceptance,
+//             disconnectionRequestRejectRemarks,
+//         );
+//         return successResponse(res, 200, "Request updated successfully", request);
+//     } catch (error) {
+//         handleError(error, res);
+//     }
+// };
 export const updateOtherRequest = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
         const { disconnectionRequestRejectRemarks } =
             requestValidation.updateOtherRequestSchema.parse(req.body);
+        const { userDepartement, mobileView } = req.body;
         const acceptance = req.query.accept === "true";
 
         // For rejection, remarks are required
@@ -397,13 +425,14 @@ export const updateOtherRequest = async (req, res) => {
             id,
             acceptance,
             disconnectionRequestRejectRemarks,
+            userDepartement,
+            mobileView,
         );
         return successResponse(res, 200, "Request updated successfully", request);
     } catch (error) {
         handleError(error, res);
     }
 };
-
 export const getAdminUsersRequests = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -541,9 +570,15 @@ export const acceptRequestByAdmin = async (req, res) => {
     try {
         const { id } = requestValidation.requestIdSchema.parse(req.params);
         const acceptance = req.query.accept === "true";
-        const mobileView=req.body.isMobileView;
-        const remarkByManager=req.body.remark;
-        const request = await requestService.acceptRequestByAdmin(id, acceptance, req.user.id,mobileView,remarkByManager);
+        const mobileView = req.body.isMobileView;
+        const remarkByManager = req.body.remark;
+        const request = await requestService.acceptRequestByAdmin(
+            id,
+            acceptance,
+            req.user.id,
+            mobileView,
+            remarkByManager,
+        );
         return successResponse(res, 200, "Request accepted successfully", request);
     } catch (error) {
         handleError(error, res);
