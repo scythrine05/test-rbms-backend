@@ -541,27 +541,79 @@ export const getManagerRequests = async (managerId, page = 1, limit = 10, startD
     };
 };
 
+// export const getOtherRequests = async (
+//     selectedDepo,
+//     page = 1,
+//     limit = 10,
+//     userEmail,
+//     startDate,
+//     endDate,
+// ) => {
+//     const skip = (page - 1) * limit;
+
+//     // Build the where clause
+//     const whereClause = {
+//         selectedDepo: selectedDepo,
+//         OR: [
+//             {
+//                 sntDisconnectionRequired: true,
+//                 // sntDisconnectionAssignTo: userEmail,
+//             },
+//             {
+//                 trdActionsNeeded: true,
+//                 // trdDisconnectionAssignTo: userEmail,
+//             },
+//         ],
+//         ...(startDate &&
+//             endDate && {
+//                 date: {
+//                     gte: new Date(startDate),
+//                     lte: new Date(endDate),
+//                 },
+//             }),
+//     };
+
+//     const [requests, total] = await Promise.all([
+//         prisma.request.findMany({
+//             where: whereClause,
+//             orderBy: { createdAt: "desc" },
+//             skip,
+//             take: limit,
+//         }),
+//         prisma.request.count({
+//             where: whereClause,
+//         }),
+//     ]);
+
+//     return {
+//         requests,
+//         total,
+//         page,
+//         totalPages: Math.ceil(total / limit),
+//     };
+// };
+
 export const getOtherRequests = async (
     selectedDepo,
     page = 1,
     limit = 10,
-    userEmail,
+    userEmail, // Keeping this parameter in case it's used elsewhere
     startDate,
     endDate,
+    userDepartement,
 ) => {
     const skip = (page - 1) * limit;
 
     // Build the where clause
     const whereClause = {
-        selectedDepo: selectedDepo,
         OR: [
             {
                 sntDisconnectionRequired: true,
-                // sntDisconnectionAssignTo: userEmail,
+                sntDisconnectionAssignTo: selectedDepo,
             },
             {
                 trdActionsNeeded: true,
-                // trdDisconnectionAssignTo: userEmail,
+                powerBlockDisconnectionAssignTo: selectedDepo,
             },
         ],
         ...(startDate &&
@@ -593,18 +645,52 @@ export const getOtherRequests = async (
     };
 };
 
-export const updateOtherRequest = async (id, acceptance, disconnectionRequestRejectRemarks) => {
+// export const updateOtherRequest = async (id, acceptance, disconnectionRequestRejectRemarks) => {
+//     console.log(acceptance ? "ACCEPTED" : "REJECTED");
+//     return await prisma.request.update({
+//         where: { id },
+//         data: {
+//             DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
+//             disconnectionRequestRejectRemarks: !acceptance
+//                 ? disconnectionRequestRejectRemarks
+//                 : null,
+//         },
+//     });
+// };
+
+export const updateOtherRequest = async (
+    id,
+    acceptance,
+    disconnectionRequestRejectRemarks,
+    userDepartement,
+    mobileView,
+) => {
     console.log(acceptance ? "ACCEPTED" : "REJECTED");
+
+    // Base data to update
+    const updateData = {
+        DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
+        disconnectionRequestRejectRemarks:
+            !acceptance && mobileView !== "mobileView" ? disconnectionRequestRejectRemarks : null,
+    };
+
+    // Additional updates for mobile view when acceptance is true
+    if (mobileView === "mobileView") {
+        if (userDepartement === "S&T") {
+            updateData.sigActionsNeeded = acceptance;
+            updateData.sigResponse = !acceptance ? disconnectionRequestRejectRemarks : "";
+        } else if (userDepartement === "TRD") {
+            updateData.trdActionsNeeded = acceptance;
+            updateData.oheResponse = !acceptance ? disconnectionRequestRejectRemarks : "";
+        }
+    }
+
     return await prisma.request.update({
         where: { id },
-        data: {
-            DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
-            disconnectionRequestRejectRemarks: !acceptance
-                ? disconnectionRequestRejectRemarks
-                : null,
-        },
+        data: updateData,
     });
 };
+
 export const getManagerUsersRequests = async (
     managerId,
     role,
