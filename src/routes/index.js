@@ -7,6 +7,7 @@ import officerRoute from "./officer.route.js";
 import openRoutes from "./open.route.js";
 import drmRoute from "./drm.route.js";
 import hqRoute from "./hq.route.js";
+import userGrRoute from "./user.gr.route.js";
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/officer", officerRoute);
 router.use("/open", openRoutes);
 router.use("/drm", drmRoute);
 router.use("/hq", hqRoute);
+router.use("/user-gr", userGrRoute);
 
 export default router;
