@@ -1,5 +1,8 @@
 import express from "express";
-import { apiKeyMiddleware } from "../middlewares/auth.middleware.js";
+import {
+    platterLabsApiKeyMiddleware,
+    etsrApiKeyMiddleware,
+} from "../middlewares/auth.middleware.js";
 import {
     getSanctionedRequests,
     patchSanctionedRequest,
@@ -8,10 +11,8 @@ import {
 
 const router = express.Router();
 
-router.use(apiKeyMiddleware);
-
-router.get("/sanctioned", getSanctionedRequests);
-router.patch("/sanctioned", patchSanctionedRequest);
-router.patch("/train-arrival", patchTrainArrival);
+router.get("/sanctioned", platterLabsApiKeyMiddleware, getSanctionedRequests);
+router.patch("/sanctioned", platterLabsApiKeyMiddleware, patchSanctionedRequest);
+router.patch("/train-arrival", etsrApiKeyMiddleware, patchTrainArrival);
 
 export default router;

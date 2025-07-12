@@ -148,11 +148,20 @@ export const DRMorHQMiddleware = async (req, res, next) => {
     }
 };
 
-const API_KEY = process.env.OPEN_API_KEY;
+const PLATTERLABS_API_KEY = process.env.OPEN_API_KEY;
+const ETSR_API_KEY = process.env.OPEN_API_ETSR;
 
-export const apiKeyMiddleware = (req, res, next) => {
+export const platterLabsApiKeyMiddleware = (req, res, next) => {
     const apiKey = req.header("x-api-key");
-    if (apiKey !== API_KEY) {
+    if (apiKey !== PLATTERLABS_API_KEY) {
+        return res.status(403).json({ message: "Forbidden - Invalid API Key" });
+    }
+    next();
+};
+
+export const etsrApiKeyMiddleware = (req, res, next) => {
+    const apiKey = req.header("x-api-key");
+    if (apiKey !== ETSR_API_KEY) {
         return res.status(403).json({ message: "Forbidden - Invalid API Key" });
     }
     next();
