@@ -252,7 +252,6 @@ function formatDateForQuery(dateStr) {
 export const generateHqReport = async (startDate, endDate, blockTypes, majorSections, user_id) => {
     const whereClause = {};
     const filters = [];
-    console.log(user_id);
     // 📅 Date filter
     if (startDate && endDate) {
         const formattedStartDate = formatDateForQuery(startDate);
@@ -298,8 +297,6 @@ export const generateHqReport = async (startDate, endDate, blockTypes, majorSect
     // Combine all filters except major section for the base query
     whereClause.AND = [...filters];
 
-    console.log("Applied filters:", JSON.stringify(whereClause, null, 2));
-
     // 📊 Get all requests with major section information
     const allRequests = await prisma.request.findMany({
         where: whereClause,
@@ -333,10 +330,6 @@ export const generateHqReport = async (startDate, endDate, blockTypes, majorSect
             (req) => majorSections.includes(req.selectedSection) && user_id === req.userId,
         );
     }
-
-    console.dir(filteredRequests[0]);
-
-    console.log("Filtered requests:", filteredRequests.length);
 
     // Group requests by major section
     const requestsBySection = {};
