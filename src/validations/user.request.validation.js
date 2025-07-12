@@ -14,7 +14,7 @@ export const createRequestSchema = z.object({
     demandTimeFrom: z.string().datetime(),
     demandTimeTo: z.string().datetime(),
     sigDisconnection: z.boolean().optional(),
-    workNature:z.string().optional(),
+    workNature: z.string().optional(),
     // elementarySectionFrom: z.string().optional(),
     adjacentLinesAffected: z.string().optional(),
     elementarySection: z.string().optional(),
@@ -61,7 +61,9 @@ export const createRequestSchema = z.object({
     sigDisconnectionRequirements: z.string().optional(),
     trdDisconnectionRequirements: z.string().optional(),
     trdDisconnectionAssignTo: z.string().optional(),
-    powerBlockDisconnectionAssignTo:z.string().optional(),
+    powerBlockDisconnectionAssignTo: z.string().optional(),
+    routeFrom: z.string().optional(),
+    routeTo: z.string().optional(),
 });
 
 export const updateRequestSchema = createRequestSchema.partial();
