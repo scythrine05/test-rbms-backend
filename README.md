@@ -2,6 +2,7 @@
 
 This is a boilerplate project for building applications using Node.js, Express.js, MySQL, and Prisma. The goal of this project is to provide a solid foundation for your application, including a scalable folder structure, essential packages, and configurations.
 
+
 ## Table of Contents
 
 -   [Folder Structure](#folder-structure)
