@@ -82,6 +82,7 @@ export const managerMiddleware = async (req, res, next) => {
         if (
             !user ||
             (user.role !== "BRANCH_OFFICER" &&
+                user.role !== "DEPT_CONTROLLER" &&
                 user.role !== "SENIOR_OFFICER" &&
                 user.role !== "JUNIOR_OFFICER" &&
                 user.role !== "ADMIN" &&
@@ -126,6 +127,7 @@ export const DRMorHQMiddleware = async (req, res, next) => {
             (user.role !== "DRM" &&
                 user.role !== "HQ" &&
                 user.role !== "BRANCH_OFFICER" &&
+                user.role !== "DEPT_CONTROLLER" &&
                 user.role !== "SENIOR_OFFICER" &&
                 user.role !== "JUNIOR_OFFICER" &&
                 user.role !== "ADMIN" &&
