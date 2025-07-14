@@ -930,6 +930,15 @@ export const getManagerUsersRequests = async (
                 userIds = await getUserIds({ managerId: juniorIds, role: "USER" });
                 break;
 
+            case "DEPT_CONTROLLER":
+                const senior_Ids = await getUserIds({ managerId, role: "SENIOR_OFFICER" });
+                const junior_Ids = await getUserIds({
+                    managerId: senior_Ids,
+                    role: "JUNIOR_OFFICER",
+                });
+                userIds = await getUserIds({ managerId: junior_Ids, role: "USER" });
+                break;
+
             case "SENIOR_OFFICER":
                 const juniorOfficerIds = await getUserIds({ managerId, role: "JUNIOR_OFFICER" });
                 userIds = await getUserIds({ managerId: juniorOfficerIds, role: "USER" });
