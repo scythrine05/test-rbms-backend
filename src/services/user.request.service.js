@@ -1758,7 +1758,7 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
 
     // Build user hierarchy under admin
     const branchRecs = await prisma.user.findMany({
-        where: { adminId, role: "BRANCH_OFFICER" },
+        where: { adminId, role: "DEPT_CONTROLLER" },
         select: { id: true },
     });
     const branchIds = branchRecs.map((r) => r.id);
