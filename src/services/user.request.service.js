@@ -1529,6 +1529,14 @@ export const acceptRequestByManager = async (
             overAllStatus = "with optg.";
         } else if (
             isAccept === true &&
+            request.sigActionsNeeded === false &&
+            request.isSanctioned === false &&
+            request.optimizeStatus === false &&
+            request.powerBlockRequired === false
+        ) {
+            overAllStatus = "with optg.";
+        } else if (
+            isAccept === true &&
             request.trdActionsNeeded === true &&
             request.isSanctioned === false &&
             request.optimizeStatus === false &&
