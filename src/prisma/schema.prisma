@@ -173,6 +173,7 @@ enum Role {
   DRM
   HQ
   JE
+  SM
 }
 
 enum Acceptance {
