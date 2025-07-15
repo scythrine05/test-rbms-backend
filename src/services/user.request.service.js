@@ -930,6 +930,15 @@ export const getManagerUsersRequests = async (
                 userIds = await getUserIds({ managerId: juniorIds, role: "USER" });
                 break;
 
+            case "DEPT_CONTROLLER":
+                const senior_Ids = await getUserIds({ managerId, role: "SENIOR_OFFICER" });
+                const junior_Ids = await getUserIds({
+                    managerId: senior_Ids,
+                    role: "JUNIOR_OFFICER",
+                });
+                userIds = await getUserIds({ managerId: junior_Ids, role: "USER" });
+                break;
+
             case "SENIOR_OFFICER":
                 const juniorOfficerIds = await getUserIds({ managerId, role: "JUNIOR_OFFICER" });
                 userIds = await getUserIds({ managerId: juniorOfficerIds, role: "USER" });
@@ -1515,7 +1524,15 @@ export const acceptRequestByManager = async (
             request.sigActionsNeeded === true &&
             request.isSanctioned === false &&
             request.optimizeStatus === false &&
-            powerBlockRequired === false
+            request.powerBlockRequired === false
+        ) {
+            overAllStatus = "with optg.";
+        } else if (
+            isAccept === true &&
+            request.sigActionsNeeded === false &&
+            request.isSanctioned === false &&
+            request.optimizeStatus === false &&
+            request.powerBlockRequired === false
         ) {
             overAllStatus = "with optg.";
         } else if (
@@ -1741,7 +1758,7 @@ export const getUsersByAdminId = async (adminId, page = 1, limit = 10, startDate
 
     // Build user hierarchy under admin
     const branchRecs = await prisma.user.findMany({
-        where: { adminId, role: "BRANCH_OFFICER" },
+        where: { adminId, role: "DEPT_CONTROLLER" },
         select: { id: true },
     });
     const branchIds = branchRecs.map((r) => r.id);

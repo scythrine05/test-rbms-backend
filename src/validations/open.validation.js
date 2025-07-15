@@ -17,6 +17,7 @@ export const patchSanctionedRequestSchema = z.object({
     // Added new fields for granted time
     grantedFromTime: z.string().optional(),
     grantedToTime: z.string().optional(),
+    overAllStatus: z.string().optional(),
 });
 
 export const updateTrainArrivalSchema = z.object({
