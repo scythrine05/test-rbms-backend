@@ -63,6 +63,7 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
             powerBlockRequired: true,
             processedLineSections: true,
             userId: true,
+            overAllStatus: true,
             user: {
                 select: {
                     name: true,
@@ -194,6 +195,7 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
                 otherLinesValues.length > 0 ? otherLinesValues.join(", ") : undefined,
             // Add noOfTrackMachines field if available
             noOfTrackMachines: noOfTrackMachines,
+            overAllStatus: request.overAllStatus,
             user: request.user
                 ? {
                       applicantName: request.user.name,

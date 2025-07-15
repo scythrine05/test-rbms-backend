@@ -305,7 +305,7 @@ export const editRequest = async (
             optimizeTimeFrom,
             optimizeTimeTo,
             date,
-            ...(mobileView && { isSanctioned: true }),
+            // ...(mobileView && { isSanctioned: true }),
         },
     });
 
