@@ -12,8 +12,8 @@ import { handleError, successResponse } from "../utils/response.js";
 
 export const getSanctionedRequests = async (req, res) => {
     try {
-        const { start_date, end_date } = getSanctionedRequestsSchema.parse(req.query);
-        const sanctionedRequests = await fetchSanctionedRequests(start_date, end_date);
+        const { start_date, end_date, CUG } = getSanctionedRequestsSchema.parse(req.query);
+        const sanctionedRequests = await fetchSanctionedRequests(start_date, end_date, CUG);
         return successResponse(
             res,
             200,
