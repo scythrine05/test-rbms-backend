@@ -1249,7 +1249,7 @@ export const getAdminPendingRequests = async (
     // 1) Gather all User IDs under this Admin's hierarchy:
     //    Admin → Branch Officers → Senior Officers → Junior Officers → Users
     const branchRecs = await prisma.user.findMany({
-        where: { adminId, role: "BRANCH_OFFICER" },
+        where: { adminId, role: "DEPT_CONTROLLER" },
         select: { id: true },
     });
     const branchIds = branchRecs.map((r) => r.id);
