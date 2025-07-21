@@ -277,8 +277,8 @@ export const generateHqReport = async (
     // 🏢 Department filter
     if (departments && departments.length > 0) {
         const mappedDepartments = departments.map((dept) => {
-            if (dept === "Engineering"||dept==="ENGG") return "ENGG";
-            if (dept === "ST"||dept==="S&T") return "S&T";
+            if (dept === "Engineering" || dept === "ENGG") return "ENGG";
+            if (dept === "ST" || dept === "S&T") return "S&T";
             if (dept === "TRD") return "TRD";
             return dept;
         });
@@ -304,13 +304,12 @@ export const generateHqReport = async (
         //     return blockType;
         // });
         const mappedBlockTypes = blockTypes.flatMap((blockType) => {
-  if (blockType === "Non-corridor") return ["Outside Corridor"];
-  if (blockType === "Emergency") return ["Urgent Block"];
-  if (blockType === "Corridor") return ["Corridor", "Corridor Block"]; // ✅ BOTH
-  if (blockType === "Mega") return ["Mega"];
-  return [blockType]; // wrap in array to keep flatMap working
-});
-
+            if (blockType === "Non-corridor") return ["Outside Corridor"];
+            if (blockType === "Emergency") return ["Urgent Block"];
+            if (blockType === "Corridor") return ["Corridor", "Corridor Block"]; // ✅ BOTH
+            if (blockType === "Mega") return ["Mega"];
+            return [blockType]; // wrap in array to keep flatMap working
+        });
 
         filters.push({
             corridorType: {
@@ -347,15 +346,17 @@ export const generateHqReport = async (
 
     // Filter requests by major sections if specified
     let filteredRequests = allRequests;
-    if (majorSections && majorSections.length > 0 && !(majorSections.length === 1 && majorSections[0] === "All")) {
-        filteredRequests = allRequests.filter(req => 
-            majorSections.includes(req.selectedSection)
-        );
+    if (
+        majorSections &&
+        majorSections.length > 0 &&
+        !(majorSections.length === 1 && majorSections[0] === "All")
+    ) {
+        filteredRequests = allRequests.filter((req) => majorSections.includes(req.selectedSection));
     }
 
     // Group requests by major section
     const requestsBySection = {};
-    filteredRequests.forEach(req => {
+    filteredRequests.forEach((req) => {
         if (!requestsBySection[req.selectedSection]) {
             requestsBySection[req.selectedSection] = [];
         }
@@ -391,18 +392,24 @@ export const generateHqReport = async (
             // Calculate granted hours (if available)
             if (req.grantedFromTime && req.grantedToTime) {
                 let grantedDurationInHours =
-                    (new Date(req.grantedToTime) - new Date(req.grantedFromTime)) / (1000 * 60 * 60);
+                    (new Date(req.grantedToTime) - new Date(req.grantedFromTime)) /
+                    (1000 * 60 * 60);
                 grantedDurationInHours =
-                    grantedDurationInHours < 0 ? grantedDurationInHours + 24 : grantedDurationInHours;
+                    grantedDurationInHours < 0
+                        ? grantedDurationInHours + 24
+                        : grantedDurationInHours;
                 totalGranted += grantedDurationInHours;
             }
 
             // Calculate availed hours (if available)
             if (req.AvailedTimeFrom && req.AvailedTimeTo) {
                 let availedDurationInHours =
-                    (new Date(req.AvailedTimeTo) - new Date(req.AvailedTimeFrom)) / (1000 * 60 * 60);
+                    (new Date(req.AvailedTimeTo) - new Date(req.AvailedTimeFrom)) /
+                    (1000 * 60 * 60);
                 availedDurationInHours =
-                    availedDurationInHours < 0 ? availedDurationInHours + 24 : availedDurationInHours;
+                    availedDurationInHours < 0
+                        ? availedDurationInHours + 24
+                        : availedDurationInHours;
                 totalAvailed += availedDurationInHours;
             }
         });
@@ -414,26 +421,28 @@ export const generateHqReport = async (
 
         // Calculate percentages
         const percentSanctioned =
-            totalDemanded > 0 ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2)) : 0;
+            totalDemanded > 0
+                ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2))
+                : 0;
 
         const percentGranted =
             // totalDemanded > 0 ? parseFloat(((totalGranted / totalDemanded) * 100).toFixed(2)) : 0;
-            totalSanctioned > 0 ? parseFloat(((totalGranted / totalSanctioned) * 100).toFixed(2)) : 0;
-
+            totalSanctioned > 0
+                ? parseFloat(((totalGranted / totalSanctioned) * 100).toFixed(2))
+                : 0;
 
         const percentAvailed =
             // totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
             totalGranted > 0 ? parseFloat(((totalAvailed / totalGranted) * 100).toFixed(2)) : 0;
-
 
         return {
             Department: section, // Using section name instead of location
             TotalRequests: requests.length,
             Demanded: totalDemanded,
             Approved: totalSanctioned,
-            Granted: totalGranted ,
-            Availed:totalAvailed,
-            PercentGranted: percentGranted ,
+            Granted: totalGranted,
+            Availed: totalAvailed,
+            PercentGranted: percentGranted,
             PercentAvailed: percentAvailed,
         };
     });
@@ -468,18 +477,24 @@ export const generateHqReport = async (
             // Calculate granted hours (if available)
             if (req.grantedFromTime && req.grantedToTime) {
                 let grantedDurationInHours =
-                    (new Date(req.grantedToTime) - new Date(req.grantedFromTime)) / (1000 * 60 * 60);
+                    (new Date(req.grantedToTime) - new Date(req.grantedFromTime)) /
+                    (1000 * 60 * 60);
                 grantedDurationInHours =
-                    grantedDurationInHours < 0 ? grantedDurationInHours + 24 : grantedDurationInHours;
+                    grantedDurationInHours < 0
+                        ? grantedDurationInHours + 24
+                        : grantedDurationInHours;
                 totalGranted += grantedDurationInHours;
             }
 
             // Calculate availed hours (if available)
             if (req.AvailedTimeFrom && req.AvailedTimeTo) {
                 let availedDurationInHours =
-                    (new Date(req.AvailedTimeTo) - new Date(req.AvailedTimeFrom)) / (1000 * 60 * 60);
+                    (new Date(req.AvailedTimeTo) - new Date(req.AvailedTimeFrom)) /
+                    (1000 * 60 * 60);
                 availedDurationInHours =
-                    availedDurationInHours < 0 ? availedDurationInHours + 24 : availedDurationInHours;
+                    availedDurationInHours < 0
+                        ? availedDurationInHours + 24
+                        : availedDurationInHours;
                 totalAvailed += availedDurationInHours;
             }
         });
@@ -491,17 +506,19 @@ export const generateHqReport = async (
 
         // Calculate percentages
         const percentSanctioned =
-            totalDemanded > 0 ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2)) : 0;
+            totalDemanded > 0
+                ? parseFloat(((totalSanctioned / totalDemanded) * 100).toFixed(2))
+                : 0;
 
         const percentGranted =
             // totalDemanded > 0 ? parseFloat(((totalGranted / totalDemanded) * 100).toFixed(2)) : 0;
-            totalSanctioned > 0 ? parseFloat(((totalGranted / totalSanctioned) * 100).toFixed(2)) : 0;
-
+            totalSanctioned > 0
+                ? parseFloat(((totalGranted / totalSanctioned) * 100).toFixed(2))
+                : 0;
 
         const percentAvailed =
             // totalSanctioned > 0 ? parseFloat(((totalAvailed / totalSanctioned) * 100).toFixed(2)) : 0;
             totalGranted > 0 ? parseFloat(((totalAvailed / totalGranted) * 100).toFixed(2)) : 0;
-
 
         pastBlockSummary.push({
             Department: location || "All Locations",
@@ -519,7 +536,11 @@ export const generateHqReport = async (
         AND: [...filters],
     };
 
-    if (majorSections && majorSections.length > 0 && !(majorSections.length === 1 && majorSections[0] === "All")) {
+    if (
+        majorSections &&
+        majorSections.length > 0 &&
+        !(majorSections.length === 1 && majorSections[0] === "All")
+    ) {
         whereClauseNew.AND.push({
             selectedSection: {
                 in: majorSections,
@@ -548,6 +569,7 @@ export const generateHqReport = async (
             isSanctioned: true,
             grantedFromTime: true,
             grantedToTime: true,
+            overAllStatus: true,
         },
     });
 
@@ -562,6 +584,7 @@ export const generateHqReport = async (
             Duration: durationInHours.toFixed(2),
             Type: req.corridorType,
             Status: req.status,
+            overAllStatus: req.overAllStatus,
         };
     });
 
