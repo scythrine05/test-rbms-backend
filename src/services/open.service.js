@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const trackMachinesPath = path.join(__dirname, "..", "data", "noOfTrackMachines.json");
 const trackMachinesData = JSON.parse(fs.readFileSync(trackMachinesPath, "utf8"));
 
-export const fetchSanctionedRequests = async (startDate, endDate) => {
+export const fetchSanctionedRequests = async (startDate, endDate, CUG) => {
     const where = {
         isSanctioned: true,
     };
@@ -23,6 +23,12 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
         where.sanctionedTimeTo = Object.assign(where.sanctionedTimeTo || {}, {
             lte: new Date(endDate),
         });
+    }
+
+    if (CUG) {
+        where.user = {
+            phone: CUG,
+        };
     }
 
     const requests = await prisma.request.findMany({
@@ -63,6 +69,7 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
             powerBlockRequired: true,
             processedLineSections: true,
             userId: true,
+            overAllStatus: true,
             user: {
                 select: {
                     name: true,
@@ -194,6 +201,7 @@ export const fetchSanctionedRequests = async (startDate, endDate) => {
                 otherLinesValues.length > 0 ? otherLinesValues.join(", ") : undefined,
             // Add noOfTrackMachines field if available
             noOfTrackMachines: noOfTrackMachines,
+            overAllStatus: request.overAllStatus,
             user: request.user
                 ? {
                       applicantName: request.user.name,

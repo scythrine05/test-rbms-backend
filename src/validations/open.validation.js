@@ -3,6 +3,7 @@ import { z } from "zod";
 export const getSanctionedRequestsSchema = z.object({
     start_date: z.string().optional(),
     end_date: z.string().optional(),
+    CUG: z.string().optional(),
 });
 
 export const patchSanctionedRequestSchema = z.object({
