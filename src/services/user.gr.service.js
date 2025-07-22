@@ -546,6 +546,7 @@ export const generateHqReport = async (startDate, endDate, blockTypes, majorSect
             isSanctioned: true,
             grantedFromTime: true,
             grantedToTime: true,
+            overAllStatus: true, // Assuming this is the same as status
         },
     });
 
@@ -560,6 +561,7 @@ export const generateHqReport = async (startDate, endDate, blockTypes, majorSect
             Duration: durationInHours.toFixed(2),
             Type: req.corridorType,
             Status: req.status,
+            overAllStatus: req.overAllStatus,
         };
     });
 
