@@ -594,6 +594,7 @@ export const generateDrmReport = async (
             grantedFromTime: true,
             grantedToTime: true,
             isSanctioned: true,
+            overAllStatus: true,
             user: {
                 select: {
                     location: true,
