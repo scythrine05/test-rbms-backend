@@ -529,7 +529,23 @@ export const generateDrmReport = async (
     }
 
     // Block type filter (if provided)
-    if (blockTypes?.length > 0) {
+    // if (blockTypes?.length > 0) {
+    //     const mappedBlockTypes = blockTypes.map((blockType) => {
+    //         if (blockType === "Non-corridor") return "Outside Corridor";
+    //         if (blockType === "Emergency") return "Urgent Block";
+    //         if (blockType === "Corridor") return "Corridor";
+    //         return blockType;
+    //     });
+
+    //     filters.push({
+    //         corridorType: {
+    //             in: mappedBlockTypes,
+    //         },
+    //     });
+    // }
+
+    // Block type filter (if provided and not "All")
+    if (blockTypes?.length > 0 && !blockTypes.includes("All")) {
         const mappedBlockTypes = blockTypes.map((blockType) => {
             if (blockType === "Non-corridor") return "Outside Corridor";
             if (blockType === "Emergency") return "Urgent Block";
@@ -578,6 +594,7 @@ export const generateDrmReport = async (
             grantedFromTime: true,
             grantedToTime: true,
             isSanctioned: true,
+            overAllStatus: true,
             user: {
                 select: {
                     location: true,
