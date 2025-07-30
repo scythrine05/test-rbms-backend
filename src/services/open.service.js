@@ -14,6 +14,7 @@ const trackMachinesData = JSON.parse(fs.readFileSync(trackMachinesPath, "utf8"))
 export const fetchSanctionedRequests = async (startDate, endDate, CUG) => {
     const where = {
         isSanctioned: true,
+        availedResponse: null,
     };
 
     if (startDate) {
@@ -47,7 +48,6 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG) => {
             sanctionedTimeTo: true,
             demandTimeFrom: true,
             demandTimeTo: true,
-            availedResponse: true,
             status: true,
             userStatus: true,
             remarkByManager: true,
@@ -70,6 +70,9 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG) => {
             processedLineSections: true,
             userId: true,
             overAllStatus: true,
+            AvailedTimeFrom: true,
+            AvailedTimeTo: true,
+            availedResponse: true,
             user: {
                 select: {
                     name: true,
@@ -174,7 +177,6 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG) => {
             sanctionedTimeTo: request.sanctionedTimeTo,
             requestedTimeFrom: request.demandTimeFrom,
             requestedTimeTo: request.demandTimeTo,
-            availedResponse: request.availedResponse,
             status: request.status,
             userStatus: request.userStatus,
             remarkByManager: request.remarkByManager,
@@ -194,6 +196,9 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG) => {
             sigElementarySectionFrom: request.sigElementarySectionFrom,
             sigElementarySectionTo: request.sigElementarySectionTo,
             powerBlockRequired: request.powerBlockRequired,
+            availedResponse: request.availedResponse,
+            availedTimeFrom: request.AvailedTimeFrom,
+            availedTimeTo: request.AvailedTimeTo,
             userId: request.userId,
             upDrDownOrSL: upOrDownOrSLValues.length > 0 ? upOrDownOrSLValues.join(", ") : undefined,
             roadNumber: roadNumberValues.length > 0 ? roadNumberValues.join(", ") : undefined,
