@@ -11,11 +11,19 @@ const __dirname = path.dirname(__filename);
 const trackMachinesPath = path.join(__dirname, "..", "data", "noOfTrackMachines.json");
 const trackMachinesData = JSON.parse(fs.readFileSync(trackMachinesPath, "utf8"));
 
-export const fetchSanctionedRequests = async (startDate, endDate, CUG) => {
+export const fetchSanctionedRequests = async (startDate, endDate, CUG, availedResponse = null) => {
     const where = {
         isSanctioned: true,
-        availedResponse: null,
     };
+
+    // Handle availedResponse filtering
+    if (availedResponse === null) {
+        where.availedResponse = null;
+    } else if (availedResponse === true) {
+        where.availedResponse = "true";
+    } else if (availedResponse === false) {
+        where.availedResponse = "false";
+    }
 
     if (startDate) {
         where.sanctionedTimeFrom = { gte: new Date(startDate) };
