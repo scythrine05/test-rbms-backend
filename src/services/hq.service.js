@@ -238,15 +238,43 @@
 import prisma from "../prisma/index.js";
 
 // Parse date from DD/MM/YY format and convert to ISO format with correct timezone
+// function formatDateForQuery(dateStr) {
+//     if (!dateStr) return null;
+
+//     const [day, month, year] = dateStr.split("/");
+//     // Convert YY to YYYY
+//     const fullYear = `20${year}`;
+
+//     // Format as YYYY-MM-DDT18:30:00.000Z
+//     return `${fullYear}-${month}-${day}T18:30:00.000Z`;
+// }
+
 function formatDateForQuery(dateStr) {
     if (!dateStr) return null;
 
-    const [day, month, year] = dateStr.split("/");
-    // Convert YY to YYYY
-    const fullYear = `20${year}`;
+    try {
+        // Handle both DD/MM/YYYY and DD/MM/YY formats
+        const [day, month, year] = dateStr.split("/");
+        const fullYear = year.length === 2 ? `20${year}` : year;
 
-    // Format as YYYY-MM-DDT18:30:00.000Z
-    return `${fullYear}-${month}-${day}T18:30:00.000Z`;
+        // Create date in local timezone at start of day (00:00:00)
+        const date = new Date(`${fullYear}-${month}-${day}T00:00:00`);
+
+        // Convert to ISO string without timezone conversion
+        const isoString = `${fullYear}-${month}-${day}T00:00:00.000Z`;
+
+        // For debugging
+        console.log("Formatted date:", {
+            input: dateStr,
+            output: isoString,
+            localDate: date.toString(),
+        });
+
+        return isoString;
+    } catch (error) {
+        console.error("Error formatting date:", error);
+        return null;
+    }
 }
 
 export const generateHqReport = async (
