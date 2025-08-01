@@ -12,8 +12,21 @@ import { handleError, successResponse } from "../utils/response.js";
 
 export const getSanctionedRequests = async (req, res) => {
     try {
-        const { start_date, end_date, CUG } = getSanctionedRequestsSchema.parse(req.query);
-        const sanctionedRequests = await fetchSanctionedRequests(start_date, end_date, CUG);
+        const { start_date, end_date, CUG, availedResponse } = getSanctionedRequestsSchema.parse(
+            req.query,
+        );
+
+        // Convert string to appropriate type
+        let availedResponseValue = null;
+        if (availedResponse === "true") availedResponseValue = true;
+        else if (availedResponse === "false") availedResponseValue = false;
+
+        const sanctionedRequests = await fetchSanctionedRequests(
+            start_date,
+            end_date,
+            CUG,
+            availedResponseValue,
+        );
         return successResponse(
             res,
             200,

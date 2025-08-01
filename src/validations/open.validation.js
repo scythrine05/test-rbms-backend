@@ -4,6 +4,7 @@ export const getSanctionedRequestsSchema = z.object({
     start_date: z.string().optional(),
     end_date: z.string().optional(),
     CUG: z.string().optional(),
+    availedResponse: z.enum(["true", "false", "null"]).optional().default("null"),
 });
 
 export const patchSanctionedRequestSchema = z.object({
