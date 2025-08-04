@@ -583,6 +583,8 @@ export const generateDrmReport = async (
         select: {
             id: true,
             selectedSection: true,
+            missionBlock: true,
+            divisionId: true,
             demandTimeFrom: true,
             demandTimeTo: true,
             status: true,
@@ -611,6 +613,8 @@ export const generateDrmReport = async (
             id: true,
             date: true,
             selectedSection: true,
+            divisionId: true,
+            missionBlock: true,
             demandTimeFrom: true,
             demandTimeTo: true,
             corridorType: true,
@@ -696,6 +700,8 @@ export const generateDrmReport = async (
         id: req.id,
         Date: new Date(req.date).toLocaleDateString(),
         Section: req.selectedSection,
+        MissionBlock: req.missionBlock,
+        DivisionId: req.divisionId,
         Location: req.user?.location || "Unknown",
         Duration: (
             (new Date(req.demandTimeTo) - new Date(req.demandTimeFrom)) /
