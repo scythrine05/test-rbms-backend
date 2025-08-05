@@ -79,6 +79,7 @@ export const createRequest = async (data, userId, divisionCode) => {
     const allowedFields = [
         "adminAcceptance",
         "date",
+        "emergencyBlockRemarks",
         "selectedDepartment",
         "selectedSection",
         "stationID",

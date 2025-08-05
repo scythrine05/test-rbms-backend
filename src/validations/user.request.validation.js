@@ -3,6 +3,7 @@ import { z } from "zod";
 export const createRequestSchema = z.object({
     adminAcceptance: z.boolean().optional().default(false),
     date: z.string().datetime(),
+    emergencyBlockRemarks: z.string().optional(),
     selectedDepartment: z.string(),
     selectedSection: z.string(),
     stationID: z.string().optional(),
