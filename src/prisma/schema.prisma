@@ -114,6 +114,7 @@ model Request {
   grantedToTime                     DateTime?
   user                              User?      @relation("UserToRequests", fields: [userId], references: [id])
   overAllStatus                     String?
+  emergencyBlockRemarks             String?
 
   @@index([userId])
   @@index([managerAcceptanceId])

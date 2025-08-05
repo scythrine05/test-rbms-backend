@@ -16,6 +16,7 @@ router.post("/reset-password", authController.resetPassword);
 
 // Phone auth routes (Public routes)
 router.post("/phone-login", authController.phoneLogin);
+router.post("/request-otp", authController.phoneLogin);
 router.post("/verify-phone-otp", authController.verifyPhoneOtp);
 router.post("/resend-otp", authController.resendOtp);
 
