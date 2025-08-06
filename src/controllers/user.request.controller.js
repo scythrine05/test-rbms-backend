@@ -939,3 +939,22 @@ export const userRequestRemarkReject = async (req, res) => {
         handleError(error, res);
     }
 };
+export const getManagerCugRequests = async (req, res) => {
+    try {
+        const cugNumber = req.query.cugNumber;
+
+        if (!cugNumber) {
+            return res.status(400).json({ error: "Missing cugNumber in query" });
+        }
+
+        const managerPhone = await requestService.getManagerCugRequests(cugNumber);
+
+        if (!managerPhone) {
+            return res.status(404).json({ error: "Manager phone not found" });
+        }
+
+        return successResponse(res, 200, "Manager CUG retrieved successfully", { managerPhone });
+    } catch (error) {
+        handleError(error, res);
+    }
+};

@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.put("/accept/:id", authenticateToken, requestController.userRequestRemarkAccept);
 router.put("/reject/:id", authenticateToken, requestController.userRequestRemarkReject);
-
+router.get("/manager-cug", authenticateToken, requestController.getManagerCugRequests);
 // User routes
 router.post("/", authenticateToken, requestController.createRequest);
 router.get("/user", authenticateToken, requestController.getUserRequests);
