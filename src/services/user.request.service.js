@@ -2492,3 +2492,16 @@ export const userRequestRemarkReject = async (id, remark) => {
         },
     });
 };
+export const getManagerCugRequests = async (cugNumber) => {
+    const user = await prisma.user.findFirst({
+        where: { phone: cugNumber },
+    });
+
+    if (!user?.managerId) return null;
+
+    const manager = await prisma.user.findUnique({
+        where: { id: user.managerId },
+    });
+
+    return manager?.phone || null;
+};
