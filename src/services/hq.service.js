@@ -602,6 +602,7 @@ export const generateHqReport = async (
             grantedFromTime: true,
             grantedToTime: true,
             overAllStatus: true,
+            activity: true, // Include activity for detailed report
         },
     });
 
@@ -619,6 +620,7 @@ export const generateHqReport = async (
             Type: req.corridorType,
             Status: req.status,
             overAllStatus: req.overAllStatus,
+            Activity: req.activity, // Include activity for detailed report
         };
     });
 

@@ -552,6 +552,7 @@ export const generateHqReport = async (startDate, endDate, blockTypes, majorSect
             grantedToTime: true,
             overAllStatus: true, // Assuming this is the same as status
             userId: true, // Include userId for filtering
+            activity: true, // Include activity for detailed report
         },
     });
 
@@ -570,6 +571,7 @@ export const generateHqReport = async (startDate, endDate, blockTypes, majorSect
             Status: req.status,
             overAllStatus: req.overAllStatus,
             userId: req.userId, // Include userId for filtering
+            Activity: req.activity,
         };
     });
 
