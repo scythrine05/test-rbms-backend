@@ -597,6 +597,7 @@ export const generateDrmReport = async (
             grantedToTime: true,
             isSanctioned: true,
             overAllStatus: true,
+            activity: true, // Include activity for detailed report
             user: {
                 select: {
                     location: true,
@@ -620,6 +621,7 @@ export const generateDrmReport = async (
             corridorType: true,
             status: true,
             overAllStatus: true, // Assuming this is the same as status
+            activity: true, // Include activity for detailed report
             user: {
                 select: {
                     location: true,
@@ -710,6 +712,7 @@ export const generateDrmReport = async (
         Type: req.corridorType,
         Status: req.status,
         overAllStatus: req.overAllStatus, // Assuming this is the same as status
+        Activity: req.activity, // Include activity for detailed report
     }));
 
     return {
