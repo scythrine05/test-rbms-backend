@@ -646,26 +646,46 @@ export const getOtherRequests = async (
     const skip = (page - 1) * limit;
 
     // Build the where clause
-    const whereClause = {
-        OR: [
-            {
-                sntDisconnectionRequired: true,
-                sntDisconnectionAssignTo: selectedDepo,
-            },
-            {
-                trdActionsNeeded: true,
-                powerBlockDisconnectionAssignTo: selectedDepo,
-            },
-        ],
-        ...(startDate &&
-            endDate && {
-                date: {
-                    gte: new Date(startDate),
-                    lte: new Date(endDate),
-                },
-            }),
-    };
+    // const whereClause = {
+    //     OR: [
+    //         {
+    //             sntDisconnectionRequired: true,
+    //             sntDisconnectionAssignTo: selectedDepo,
+    //         },
+    //         {
+    //             trdActionsNeeded: true,
+    //             powerBlockDisconnectionAssignTo: selectedDepo,
+    //         },
+    //     ],
+    //     ...(startDate &&
+    //         endDate && {
+    //             date: {
+    //                 gte: new Date(startDate),
+    //                 lte: new Date(endDate),
+    //             },
+    //         }),
+    // };
+    let whereClause = {};
 
+    if (userDepartement === "S&T") {
+        whereClause = {
+            sntDisconnectionRequired: true,
+            sntDisconnectionAssignTo: selectedDepo,
+        };
+    } else if (userDepartement === "TRD") {
+        whereClause = {
+            powerBlockRequired: true,
+            powerBlockDisconnectionAssignTo: selectedDepo,
+        };
+    }
+
+    // Date filter
+    if (startDate && endDate) {
+        whereClause.date = {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+        };
+    }
     const [requests, total] = await Promise.all([
         prisma.request.findMany({
             where: whereClause,
