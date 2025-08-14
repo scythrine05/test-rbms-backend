@@ -674,7 +674,7 @@ export const getOtherRequests = async (
         };
     } else if (userDepartement === "TRD") {
         whereClause = {
-            trdActionsNeeded: true,
+            powerBlockRequired: true,
             powerBlockDisconnectionAssignTo: selectedDepo,
         };
     }
