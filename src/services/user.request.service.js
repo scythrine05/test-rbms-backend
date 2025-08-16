@@ -1249,10 +1249,10 @@ export const getManagerUsersRequests = async (
 //     };
 // };
 export const getAdminPendingRequests = async (
-    adminId,
     role,
     page = 1,
     limit = 10,
+    adminId,
     startDate,
     endDate,
 ) => {

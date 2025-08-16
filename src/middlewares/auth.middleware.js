@@ -45,7 +45,12 @@ export const adminMiddleware = async (req, res, next) => {
             where: { id: decoded.id },
         });
 
-        if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+        if (
+            !user ||
+            (user.role !== "ADMIN" &&
+                user.role !== "SUPER_ADMIN" &&
+                user.role !== "PUNCTUALITY_CONTROLLER")
+        ) {
             return res.status(403).json({
                 status: false,
                 message: "Access denied. Admin privileges required.",
@@ -86,6 +91,7 @@ export const managerMiddleware = async (req, res, next) => {
                 user.role !== "SENIOR_OFFICER" &&
                 user.role !== "JUNIOR_OFFICER" &&
                 user.role !== "ADMIN" &&
+                user.role !== "PUNCTUALITY_CONTROLLER" &&
                 user.role !== "SUPER_ADMIN")
         ) {
             return res.status(403).json({
@@ -125,6 +131,7 @@ export const DRMorHQMiddleware = async (req, res, next) => {
         if (
             !user ||
             (user.role !== "DRM" &&
+                user.role !== "PUNCTUALITY_CONTROLLER" &&
                 user.role !== "HQ" &&
                 user.role !== "BRANCH_OFFICER" &&
                 user.role !== "DEPT_CONTROLLER" &&

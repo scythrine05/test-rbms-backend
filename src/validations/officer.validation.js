@@ -8,6 +8,7 @@ const roleEnum = z.enum([
     "SENIOR_OFFICER",
     "JUNIOR_OFFICER",
     "DEPT_CONTROLLER",
+    "PUNCTUALITY_CONTROLLER",
     "USER",
 ]);
 
@@ -35,6 +36,9 @@ export const officerValidation = {
                         return false; // Branch officer must have an adminId
                     }
                     if (data.role === "DEPT_CONTROLLER" && !data.adminId) {
+                        return false; // Branch officer must have an adminId
+                    }
+                    if (data.role === "PUNCTUALITY_CONTROLLER" && !data.adminId) {
                         return false; // Branch officer must have an adminId
                     }
                     if (
