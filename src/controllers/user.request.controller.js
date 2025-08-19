@@ -439,11 +439,13 @@ export const getAdminUsersRequests = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
+        const queryId = req.query.id;
+        const userId = req.user.role === "PUNCTUALITY_CONTROLLER" ? queryId : req.user.id;
         const result = await requestService.getAdminPendingRequests(
-            req.user.id,
             req.user.role,
             page,
             limit,
+            userId,
             startDate,
             endDate,
         );
@@ -475,9 +477,11 @@ export const getManagerUsersRequests = async (req, res) => {
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
         const status = req.query.status;
+        const queryId = req.query.id;
+        const userId = queryId || req.user.id;
 
         const result = await requestService.getManagerUsersRequests(
-            req.user.id,
+            userId,
             req.user.role,
             page,
             limit,
