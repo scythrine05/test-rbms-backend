@@ -477,9 +477,11 @@ export const getManagerUsersRequests = async (req, res) => {
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
         const status = req.query.status;
+        const queryId = req.query.id;
+        const userId = queryId || req.user.id;
 
         const result = await requestService.getManagerUsersRequests(
-            req.user.id,
+            userId,
             req.user.role,
             page,
             limit,
