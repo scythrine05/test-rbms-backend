@@ -135,6 +135,7 @@ export const createRequest = async (data, userId, divisionCode) => {
         "trdDisconnectionAssignTo",
         "workNature",
         "powerBlockDisconnectionAssignTo",
+        "duration",
     ];
 
     // Filter out any fields not in allowedFields
@@ -363,6 +364,7 @@ export const updateSanctionStatus = async (requests) => {
                     sanctionedTimeFrom: request.optimizeTimeFrom,
                     sanctionedTimeTo: request.optimizeTimeTo,
                     ...(isOptimized && { overAllStatus: "Sanctioned" }),
+                    sanctionedRemarks: request.sanctionedRemark || null,
                 },
             });
         });
@@ -758,6 +760,7 @@ export const updateOtherRequest = async (
     disconnectionRequestRejectRemarks,
     userDepartement,
     mobileView,
+    location,
 ) => {
     console.log(acceptance ? "ACCEPTED" : "REJECTED");
 
@@ -788,9 +791,16 @@ export const updateOtherRequest = async (
 
     const updateData = {
         DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
-        disconnectionRequestRejectRemarks:
-            !acceptance && mobileView !== "mobileView" ? disconnectionRequestRejectRemarks : null,
+        // disconnectionRequestRejectRemarks:
+        //     !acceptance && mobileView !== "mobileView" ? disconnectionRequestRejectRemarks : null,
     };
+    if (location === "PGT") {
+        updateData.disconnectionRequestRejectRemarks = disconnectionRequestRejectRemarks;
+    } else {
+        if (!acceptance && mobileView !== "mobileView") {
+            updateData.disconnectionRequestRejectRemarks = disconnectionRequestRejectRemarks;
+        }
+    }
 
     if (mobileView === "mobileView") {
         if (userDepartement === "S&T") {

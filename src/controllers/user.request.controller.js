@@ -412,6 +412,7 @@ export const updateOtherRequest = async (req, res) => {
             requestValidation.updateOtherRequestSchema.parse(req.body);
         const { userDepartement, mobileView } = req.body;
         const acceptance = req.query.accept === "true";
+        const location = req.user.location;
 
         // For rejection, remarks are required
         if (!acceptance && !disconnectionRequestRejectRemarks) {
@@ -427,6 +428,7 @@ export const updateOtherRequest = async (req, res) => {
             disconnectionRequestRejectRemarks,
             userDepartement,
             mobileView,
+            location,
         );
         return successResponse(res, 200, "Request updated successfully", request);
     } catch (error) {
