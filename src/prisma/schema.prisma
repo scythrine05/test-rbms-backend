@@ -115,6 +115,7 @@ model Request {
   user                              User?      @relation("UserToRequests", fields: [userId], references: [id])
   overAllStatus                     String?
   emergencyBlockRemarks             String?
+  sanctionedRemarks                 String?
 
   @@index([userId])
   @@index([managerAcceptanceId])
