@@ -116,6 +116,7 @@ model Request {
   overAllStatus                     String?
   emergencyBlockRemarks             String?
   sanctionedRemarks                 String?
+  duration                          DateTime?
 
   @@index([userId])
   @@index([managerAcceptanceId])

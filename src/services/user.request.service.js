@@ -135,6 +135,7 @@ export const createRequest = async (data, userId, divisionCode) => {
         "trdDisconnectionAssignTo",
         "workNature",
         "powerBlockDisconnectionAssignTo",
+        "duration",
     ];
 
     // Filter out any fields not in allowedFields
