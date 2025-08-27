@@ -151,4 +151,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For any inquiries, please contact [shaikhabubakar2380@gmail.com](mailto:shaikhabubakar2380@gmail.com).
+For any inquiries, please contact [shaikhabubakar2380@gmail.com](mailto:shaikhabubakar2380@gmail.com)..
