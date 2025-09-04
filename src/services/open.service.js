@@ -81,12 +81,15 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG, availedRe
             AvailedTimeFrom: true,
             AvailedTimeTo: true,
             availedResponse: true,
+            sntDisconnectionAssignTo: true,
+            powerBlockDisconnectionAssignTo: true,
             user: {
                 select: {
                     name: true,
                     phone: true,
                     email: true,
                     department: true,
+                    location: true,
                 },
             },
         },
@@ -210,6 +213,8 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG, availedRe
             userId: request.userId,
             upDrDownOrSL: upOrDownOrSLValues.length > 0 ? upOrDownOrSLValues.join(", ") : undefined,
             roadNumber: roadNumberValues.length > 0 ? roadNumberValues.join(", ") : undefined,
+            sntDisconnectionAssignTo: request.sntDisconnectionAssignTo,
+            powerBlockDisconnectionAssignTo: request.powerBlockDisconnectionAssignTo,
             otherLinesAffected:
                 otherLinesValues.length > 0 ? otherLinesValues.join(", ") : undefined,
             // Add noOfTrackMachines field if available
@@ -221,6 +226,7 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG, availedRe
                       applicantMobile: request.user.phone,
                       email: request.user.email || null,
                       department: request.user.department || null,
+                      division: request.user.location,
                   }
                 : null,
         };
