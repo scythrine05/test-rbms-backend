@@ -136,6 +136,7 @@ export const createRequest = async (data, userId, divisionCode) => {
         "workNature",
         "powerBlockDisconnectionAssignTo",
         "duration",
+        "isSanctioned",
     ];
 
     // Filter out any fields not in allowedFields
@@ -196,12 +197,22 @@ export const createRequest = async (data, userId, divisionCode) => {
     // 9. Generate final ID (format: YYMonthKDivisionLetter#####)
     const divisionId = `${yearPart}${monthChar}${fixedChar}${divisionLetter}${incrementPart}`;
 
+    // Extras. If any of the isSanctioned and managerAcceptance are true, set sanctioned times and manager response timing
+    if (filteredData.isSanctioned === true) {
+        filteredData.sanctionedTimeFrom = filteredData.demandTimeFrom;
+        filteredData.sanctionedTimeTo = filteredData.demandTimeTo;
+    }
+
+    if (filteredData.managerAcceptance === true) {
+        filteredData.managerResponseTiming = now;
+    }
+
     // 10. Create the request with generated ID
     return await prisma.request.create({
         data: {
             ...filteredData,
             userId,
-            status: "PENDING",
+            status: filteredData.isSanctioned ? "APPROVED" : "PENDING",
             divisionId,
             overAllStatus: "with Dept controller",
             createdAt: now,
