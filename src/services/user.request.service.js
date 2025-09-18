@@ -75,149 +75,154 @@ import prisma from "../prisma/index.js";
 // };
 
 export const createRequest = async (data, userId, divisionCode) => {
-    // List of allowed fields from Prisma schema
-    const allowedFields = [
-        "adminAcceptance",
-        "date",
-        "emergencyBlockRemarks",
-        "selectedDepartment",
-        "selectedSection",
-        "stationID",
-        "missionBlock",
-        "workType",
-        "activity",
-        "freshCautionRequired",
-        "freshCautionSpeed",
-        "freshCautionLocationFrom",
-        "freshCautionLocationTo",
-        "adjacentLinesAffected",
-        "workLocationFrom",
-        "workLocationTo",
-        "demandTimeFrom",
-        "demandTimeTo",
-        "sigDisconnection",
-        "elementarySection",
-        "elementarySectionTo",
-        "sigElementarySectionFrom",
-        "sigElementarySectionTo",
-        "repercussions",
-        "trdWorkLocation",
-        "requestremarks",
-        "status",
-        "selectedDepo",
-        "sigResponse",
-        "ohDisconnection",
-        "oheDisconnection",
-        "oheResponse",
-        "corridorType",
-        "corridorTypeSelection",
-        "sigActionsNeeded",
-        "trdActionsNeeded",
-        "ManagerResponse",
-        "sigDisconnectionRequirements",
-        "sntDisconnectionRequirements",
-        "sntDisconnectionLine",
-        "sntDisconnectionLineFrom",
-        "sntDisconnectionLineTo",
-        "trdDisconnectionRequirements",
-        "powerBlockRequirements",
-        "powerBlockRequired",
-        "sntDisconnectionRequired",
-        "processedLineSections",
-        "routeFrom",
-        "routeTo",
-        "DisconnAcceptance",
-        "managerAcceptanceId",
-        "managerAcceptance",
-        "adminAcceptanceId",
-        "adminAcceptance",
-        "sntDisconnectionAssignTo",
-        "trdDisconnectionAssignTo",
-        "workNature",
-        "powerBlockDisconnectionAssignTo",
-        "duration",
-        "isSanctioned",
-    ];
+    try {
+        // List of allowed fields from Prisma schema
+        const allowedFields = [
+            "adminAcceptance",
+            "date",
+            "emergencyBlockRemarks",
+            "selectedDepartment",
+            "selectedSection",
+            "stationID",
+            "missionBlock",
+            "workType",
+            "activity",
+            "freshCautionRequired",
+            "freshCautionSpeed",
+            "freshCautionLocationFrom",
+            "freshCautionLocationTo",
+            "adjacentLinesAffected",
+            "workLocationFrom",
+            "workLocationTo",
+            "demandTimeFrom",
+            "demandTimeTo",
+            "sigDisconnection",
+            "elementarySection",
+            "elementarySectionTo",
+            "sigElementarySectionFrom",
+            "sigElementarySectionTo",
+            "repercussions",
+            "trdWorkLocation",
+            "requestremarks",
+            "status",
+            "selectedDepo",
+            "sigResponse",
+            "ohDisconnection",
+            "oheDisconnection",
+            "oheResponse",
+            "corridorType",
+            "corridorTypeSelection",
+            "sigActionsNeeded",
+            "trdActionsNeeded",
+            "ManagerResponse",
+            "sigDisconnectionRequirements",
+            "sntDisconnectionRequirements",
+            "sntDisconnectionLine",
+            "sntDisconnectionLineFrom",
+            "sntDisconnectionLineTo",
+            "trdDisconnectionRequirements",
+            "powerBlockRequirements",
+            "powerBlockRequired",
+            "sntDisconnectionRequired",
+            "processedLineSections",
+            "routeFrom",
+            "routeTo",
+            "DisconnAcceptance",
+            "managerAcceptanceId",
+            "managerAcceptance",
+            "adminAcceptanceId",
+            "adminAcceptance",
+            "sntDisconnectionAssignTo",
+            "trdDisconnectionAssignTo",
+            "workNature",
+            "powerBlockDisconnectionAssignTo",
+            "duration",
+            "isSanctioned",
+        ];
 
-    // Filter out any fields not in allowedFields
-    const filteredData = Object.fromEntries(
-        Object.entries(data).filter(([key]) => allowedFields.includes(key)),
-    );
+        // Filter out any fields not in allowedFields
+        const filteredData = Object.fromEntries(
+            Object.entries(data).filter(([key]) => allowedFields.includes(key)),
+        );
 
-    // 1. Use the exact date from frontend request
-    const requestDate = new Date(data.date);
-    const now = new Date(); // Current timestamp for createdAt
+        // 1. Use the exact date from frontend request
+        const requestDate = new Date(data.date);
+        const now = new Date(); // Current timestamp for createdAt
 
-    // 2. Get last 2 digits of year
-    const yearPart = requestDate.getFullYear().toString().slice(-2);
+        // 2. Get last 2 digits of year
+        const yearPart = requestDate.getFullYear().toString().slice(-2);
 
-    // 3. Convert month to letter (A=Jan, B=Feb, etc., skipping I)
-    const month = requestDate.getMonth();
-    let monthChar = String.fromCharCode(65 + month);
-    if (month >= 8) monthChar = String.fromCharCode(66 + month); // Skip I
+        // 3. Convert month to letter (A=Jan, B=Feb, etc., skipping I)
+        const month = requestDate.getMonth();
+        let monthChar = String.fromCharCode(65 + month);
+        if (month >= 8) monthChar = String.fromCharCode(66 + month); // Skip I
 
-    // 4. Fixed "K"
-    const fixedChar = "K";
+        // 4. Fixed "K"
+        const fixedChar = "K";
 
-    // 5. Map division code to corresponding letter
-    const divisionMap = {
-        MAS: "A",
-        MDU: "B",
-        SA: "C",
-        PGT: "D",
-        TPJ: "E",
-        TVC: "F",
-    };
+        // 5. Map division code to corresponding letter
+        const divisionMap = {
+            MAS: "A",
+            MDU: "B",
+            SA: "C",
+            PGT: "D",
+            TPJ: "E",
+            TVC: "F",
+        };
 
-    // Get the base division code (first 3 characters)
-    const baseDivisionCode = divisionCode?.toUpperCase().slice(0, 3) || "GEN";
-    // Get the mapped letter or use original if not in map
-    const divisionLetter = divisionMap[baseDivisionCode] || baseDivisionCode.slice(0, 1);
+        // Get the base division code (first 3 characters)
+        const baseDivisionCode = divisionCode?.toUpperCase().slice(0, 3) || "GEN";
+        // Get the mapped letter or use original if not in map
+        const divisionLetter = divisionMap[baseDivisionCode] || baseDivisionCode.slice(0, 1);
 
-    // 6. Calculate date range for current month
-    const startOfMonth = new Date(requestDate.getFullYear(), requestDate.getMonth(), 1);
-    const endOfMonth = new Date(requestDate.getFullYear(), requestDate.getMonth() + 1, 1);
+        // 6. Calculate date range for current month
+        const startOfMonth = new Date(requestDate.getFullYear(), requestDate.getMonth(), 1);
+        const endOfMonth = new Date(requestDate.getFullYear(), requestDate.getMonth() + 1, 1);
 
-    // 7. Find most recent request for this month+division
-    const lastRequest = await prisma.request.findFirst({
-        where: {
-            createdAt: { lt: now }, // Only check requests created before this one
-            date: { gte: startOfMonth, lt: endOfMonth },
-            divisionId: {
-                startsWith: `${yearPart}${monthChar}${fixedChar}${divisionLetter}`,
+        // 7. Find most recent request for this month+division
+        const lastRequest = await prisma.request.findFirst({
+            where: {
+                createdAt: { lt: now }, // Only check requests created before this one
+                date: { gte: startOfMonth, lt: endOfMonth },
+                divisionId: {
+                    startsWith: `${yearPart}${monthChar}${fixedChar}${divisionLetter}`,
+                },
             },
-        },
-        orderBy: { createdAt: "desc" }, // Get the newest one
-    });
+            orderBy: { createdAt: "desc" }, // Get the newest one
+        });
 
-    // 8. Determine increment number (now 5 digits)
-    const lastIncrement = lastRequest?.divisionId?.slice(-5) || "00000";
-    const incrementPart = (parseInt(lastIncrement) + 1).toString().padStart(5, "0");
+        // 8. Determine increment number (now 5 digits)
+        const lastIncrement = lastRequest?.divisionId?.slice(-5) || "00000";
+        const incrementPart = (parseInt(lastIncrement) + 1).toString().padStart(5, "0");
 
-    // 9. Generate final ID (format: YYMonthKDivisionLetter#####)
-    const divisionId = `${yearPart}${monthChar}${fixedChar}${divisionLetter}${incrementPart}`;
+        // 9. Generate final ID (format: YYMonthKDivisionLetter#####)
+        const divisionId = `${yearPart}${monthChar}${fixedChar}${divisionLetter}${incrementPart}`;
 
-    // Extras. If any of the isSanctioned and managerAcceptance are true, set sanctioned times and manager response timing
-    if (filteredData.isSanctioned === true) {
-        filteredData.sanctionedTimeFrom = filteredData.demandTimeFrom;
-        filteredData.sanctionedTimeTo = filteredData.demandTimeTo;
+        // Extras. If any of the isSanctioned and managerAcceptance are true, set sanctioned times and manager response timing
+        if (filteredData.isSanctioned === true) {
+            filteredData.sanctionedTimeFrom = filteredData.demandTimeFrom;
+            filteredData.sanctionedTimeTo = filteredData.demandTimeTo;
+        }
+
+        if (filteredData.managerAcceptance === true) {
+            filteredData.managerResponseTiming = now;
+        }
+
+        // 10. Create the request with generated ID
+        return await prisma.request.create({
+            data: {
+                ...filteredData,
+                userId,
+                status: filteredData.isSanctioned ? "APPROVED" : "PENDING",
+                divisionId,
+                overAllStatus: "with Dept controller",
+                createdAt: now,
+            },
+        });
+    } catch (error) {
+        console.log(error);
+        throw error;
     }
-
-    if (filteredData.managerAcceptance === true) {
-        filteredData.managerResponseTiming = now;
-    }
-
-    // 10. Create the request with generated ID
-    return await prisma.request.create({
-        data: {
-            ...filteredData,
-            userId,
-            status: filteredData.isSanctioned ? "APPROVED" : "PENDING",
-            divisionId,
-            overAllStatus: "with Dept controller",
-            createdAt: now,
-        },
-    });
 };
 
 export const updatedSatus = async (requestId, status, reason) => {
@@ -1649,6 +1654,7 @@ export const acceptRequestByManager = async (
             status: isAccept ? "APPROVED" : "REJECTED",
             remarkByManager: remark ?? null,
             overAllStatus,
+            managerResponseTiming: new Date(),
 
             ...(mobileView && {
                 adminRequestStatus: "ACCEPTED",
@@ -2545,4 +2551,67 @@ export const getManagerCugRequests = async (cugNumber) => {
     });
 
     return manager?.phone || null;
+};
+
+/**
+ * Edit a user request's time-related fields (date, demandTimeFrom, demandTimeTo)
+ * @param {string} requestId - The ID of the request to edit
+ * @param {Object} data - Object containing date, demandTimeFrom, and demandTimeTo
+ * @returns {Promise<Object>} - The updated request
+ */
+export const editUserRequest = async (requestId, data) => {
+    try {
+        // Convert string dates to Date objects
+        const updateData = {
+            date: new Date(data.date),
+            demandTimeFrom: new Date(data.demandTimeFrom),
+            demandTimeTo: new Date(data.demandTimeTo),
+        };
+
+        // Validate that demandTimeTo is after demandTimeFrom
+        if (updateData.demandTimeTo <= updateData.demandTimeFrom) {
+            throw new Error("End time must be after start time");
+        }
+
+        // Update the request
+        const updatedRequest = await prisma.request.update({
+            where: { id: requestId },
+            data: updateData,
+            select: {
+                id: true,
+                divisionId: true,
+                date: true,
+                demandTimeFrom: true,
+                demandTimeTo: true,
+                status: true,
+                createdAt: true,
+                selectedDepartment: true,
+                selectedSection: true,
+                activity: true,
+            },
+        });
+
+        if (!updatedRequest) {
+            throw new Error("Request not found or update failed");
+        }
+
+        return updatedRequest;
+    } catch (error) {
+        console.error("Error in editUserRequest:", error);
+
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            return {
+                ok: false,
+                status: 500,
+                message: "Database error",
+                code: error.code,
+            };
+        }
+
+        return {
+            ok: false,
+            status: error.message === "End time must be after start time" ? 400 : 500,
+            message: error.message || "Internal server error",
+        };
+    }
 };
