@@ -806,7 +806,6 @@ export const updateOtherRequest = async (
     let updatedOheResponse = request.oheResponse;
 
     const updateData = {
-        DisconnAcceptance: acceptance ? "ACCEPTED" : "REJECTED",
         // disconnectionRequestRejectRemarks:
         //     !acceptance && mobileView !== "mobileView" ? disconnectionRequestRejectRemarks : null,
     };
@@ -832,6 +831,10 @@ export const updateOtherRequest = async (
         }
     }
 
+    if (updatedSigActionsNeeded && updatedTrdActionsNeeded) {
+        updateData.DisconnAcceptance = "ACCEPTED";
+    }
+
     let overAllStatus;
 
     if (
@@ -840,6 +843,7 @@ export const updateOtherRequest = async (
         updatedSigResponse?.trim() !== "" &&
         request.sntDisconnectionRequired === true
     ) {
+        updateData.DisconnAcceptance = "REJECTED";
         overAllStatus = "return to applicant by s&t.";
     } else if (
         request.managerAcceptance === false &&
@@ -848,6 +852,7 @@ export const updateOtherRequest = async (
         updatedSigResponse?.trim() !== "" &&
         request.sntDisconnectionRequired === true
     ) {
+        updateData.DisconnAcceptance = "REJECTED";
         overAllStatus = "return to applicant by s&t.";
     } else if (
         request.managerAcceptance === true &&
@@ -871,6 +876,7 @@ export const updateOtherRequest = async (
         updatedTrdActionsNeeded === false &&
         request.powerBlockRequired === true
     ) {
+        updateData.DisconnAcceptance = "REJECTED";
         overAllStatus = "return to applicant by trd.";
     } else if (
         request.managerAcceptance === false &&
@@ -879,6 +885,7 @@ export const updateOtherRequest = async (
         updatedTrdActionsNeeded === false &&
         request.powerBlockRequired === true
     ) {
+        updateData.DisconnAcceptance = "REJECTED";
         overAllStatus = "return to applicant by trd.";
     } else if (
         request.managerAcceptance === false &&
@@ -888,6 +895,7 @@ export const updateOtherRequest = async (
         updatedOheResponse?.trim() !== "" &&
         updatedTrdActionsNeeded === false
     ) {
+        updateData.DisconnAcceptance = "REJECTED";
         overAllStatus = "return to applicant by s&t and trd.";
     } else if (
         request.managerAcceptance === true &&
