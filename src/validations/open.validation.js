@@ -20,6 +20,8 @@ export const patchSanctionedRequestSchema = z.object({
     grantedFromTime: z.string().optional(),
     grantedToTime: z.string().optional(),
     overAllStatus: z.string().optional(),
+    // Phone number (CUG) of the person who availed the block
+    availedCug: z.string().optional(),
 });
 
 export const updateTrainArrivalSchema = z.object({
