@@ -83,6 +83,16 @@ export const fetchSanctionedRequests = async (startDate, endDate, CUG, availedRe
             availedResponse: true,
             sntDisconnectionAssignTo: true,
             powerBlockDisconnectionAssignTo: true,
+            availedById: true,
+            availedBy: {
+                select: {
+                    name: true,
+                    phone: true,
+                    email: true,
+                    department: true,
+                    location: true,
+                },
+            },
             user: {
                 select: {
                     name: true,
@@ -251,23 +261,33 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
     // Prepare update data
     const updateData = {
         availedResponse: String(availed),
+        availedById: null, // Default to null, will update if CUG is provided
     };
+
+    // Find user by phone/CUG if provided
+    if (additionalData.availedCug) {
+        const user = await prisma.user.findFirst({
+            where: { phone: additionalData.availedCug },
+            select: { id: true },
+        });
+
+        if (user) {
+            updateData.availedById = user.id;
+        }
+    }
 
     // Handle availed=true case
     if (availed === true) {
-        updateData.AvailedTimeFrom = additionalData.availedTimeFrom
-            ? new Date(additionalData.availedTimeFrom)
-            : null;
-        updateData.AvailedTimeTo = additionalData.availedTimeTo
-            ? new Date(additionalData.availedTimeTo)
-            : null;
-        updateData.availedRemarks = null; // Clear remarks if availed is true
+        if (additionalData.availedTimeFrom) {
+            updateData.AvailedTimeFrom = new Date(additionalData.availedTimeFrom);
+        }
+        if (additionalData.availedTimeTo) {
+            updateData.AvailedTimeTo = new Date(additionalData.availedTimeTo);
+        }
     }
     // Handle availed=false case
     else {
         updateData.availedRemarks = additionalData.availedRemarks || null;
-        updateData.AvailedTimeFrom = null; // Clear times if availed is false
-        updateData.AvailedTimeTo = null;
     }
 
     // Add granted time fields if they exist
@@ -278,9 +298,11 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
     if (additionalData.grantedToTime) {
         updateData.grantedToTime = new Date(additionalData.grantedToTime);
     }
+
     if (additionalData.overAllStatus) {
         updateData.overAllStatus = additionalData.overAllStatus;
     }
+
     const updatedRequest = await prisma.request.update({
         where: { divisionId: id },
         data: updateData,
@@ -293,6 +315,17 @@ export const updateSanctionedRequestAvailed = async (id, availed, additionalData
             grantedFromTime: true,
             grantedToTime: true,
             overAllStatus: true,
+            availedById: true,
+            availedBy: {
+                select: {
+                    id: true,
+                    name: true,
+                    phone: true,
+                    department: true,
+                    role: true,
+                    location: true,
+                },
+            },
         },
     });
 

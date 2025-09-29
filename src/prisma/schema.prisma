@@ -23,6 +23,7 @@ model User {
   otps         Otp[]
   RefreshToken RefreshToken[]
   userRequests Request[]      @relation("UserToRequests")
+  availedBlocks Request[]     @relation("AvailedByUser")
   admin        User?          @relation("AdminToManagers", fields: [adminId], references: [id])
   managers     User[]         @relation("AdminToManagers")
   manager      User?          @relation("ManagerToUsers", fields: [managerId], references: [id])
@@ -113,7 +114,9 @@ model Request {
   workNature                        String?
   grantedFromTime                   DateTime?
   grantedToTime                     DateTime?
+  availedById                       String?
   user                              User?      @relation("UserToRequests", fields: [userId], references: [id])
+  availedBy                         User?      @relation("AvailedByUser", fields: [availedById], references: [id])
   overAllStatus                     String?
   emergencyBlockRemarks             String?
   sanctionedRemarks                 String?
@@ -123,6 +126,7 @@ model Request {
   @@index([managerAcceptanceId])
   @@index([adminAcceptanceId])
   @@index([createdAt])
+  @@index([availedById])
 }
 
 model Optimize_Table {
