@@ -14,31 +14,34 @@ export const getSanctionedRequestsByTimeRange = async (hours) => {
     endDate.setHours(now.getHours() + hours);
 
     try {
+        // Get today's date at the start of the day
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+
+        // Get date for tomorrow and day after tomorrow at the start of the day
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const dayAfterTomorrow = new Date(today);
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
         const requests = await prisma.request.findMany({
             where: {
                 isSanctioned: true,
                 OR: [
-                    // Jobs starting within the next X hours
+                    // 1️⃣ Jobs scheduled for today that start in the future (within window)
                     {
+                        date: today,
                         sanctionedTimeFrom: {
                             gte: now,
-                            lte: endDate,
+                            lt: endDate,
                         },
                     },
-                    // Jobs ending within the next X hours
+                    // 2️⃣ Jobs scheduled for tomorrow that start within our window
                     {
-                        sanctionedTimeTo: {
-                            gte: now,
-                            lte: endDate,
-                        },
-                    },
-                    // Jobs currently ongoing
-                    {
+                        date: tomorrow,
                         sanctionedTimeFrom: {
-                            lte: now,
-                        },
-                        sanctionedTimeTo: {
-                            gte: now,
+                            lt: endDate, // Only if they start before our end window
                         },
                     },
                 ],
